@@ -8,7 +8,8 @@ import 'widgets/login_header.dart';
 ///
 /// Creates and owns the [LoginController], rebuilds when it notifies, and
 /// composes the reusable header and form. Wrapped in [SafeArea] +
-/// [SingleChildScrollView] so the keyboard never overflows.
+/// [SingleChildScrollView] so the keyboard never overflows; the footer is
+/// pinned to the bottom via [Spacer] inside an [IntrinsicHeight].
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -46,8 +47,6 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
       body: SafeArea(
         child: LayoutBuilder(
@@ -55,45 +54,51 @@ class _LoginPageState extends State<LoginPage> {
             return SingleChildScrollView(
               child: ConstrainedBox(
                 constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: Center(
-                  // Keep the form readable on tablets / large phones.
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 460),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const LoginHeader(),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Text(
-                                'Đăng nhập để tiếp tục',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                              const SizedBox(height: 24),
-                              // Rebuild on controller changes (e.g. show/hide password).
-                              ListenableBuilder(
-                                listenable: _controller,
-                                builder: (context, _) {
-                                  return LoginForm(
-                                    controller: _controller,
-                                    onForgotPassword: () => _showSnackBar(
-                                      'Tính năng quên mật khẩu sắp ra mắt',
+                child: IntrinsicHeight(
+                  child: Center(
+                    // Keep the form readable on tablets / large phones.
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 460),
+                      child: Column(
+                        children: [
+                          // Logo + form, vertically centred in the space
+                          // above the footer.
+                          Expanded(
+                            child: Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const LoginHeader(),
+                                  Padding(
+                                    padding: const EdgeInsets.fromLTRB(
+                                      24,
+                                      8,
+                                      24,
+                                      0,
                                     ),
-                                    onLogin: _handleLogin,
-                                  );
-                                },
+                                    child: ListenableBuilder(
+                                      listenable: _controller,
+                                      builder: (context, _) {
+                                        return LoginForm(
+                                          controller: _controller,
+                                          onForgotPassword: () => _showSnackBar(
+                                            'Tính năng quên mật khẩu sắp ra mắt',
+                                          ),
+                                          onLogin: _handleLogin,
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(height: 32),
-                              const _Footer(),
-                            ],
+                            ),
                           ),
-                        ),
-                      ],
+                          const Padding(
+                            padding: EdgeInsets.only(top: 24, bottom: 16),
+                            child: _Footer(),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -106,7 +111,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 }
 
-/// Bottom footer: copyright + app version.
+/// Bottom footer: app version above the copyright line.
 class _Footer extends StatelessWidget {
   const _Footer();
 
@@ -119,9 +124,9 @@ class _Footer extends StatelessWidget {
 
     return Column(
       children: [
-        Text('© 2026 FPT Schools', style: style),
-        const SizedBox(height: 2),
         Text('Phiên bản 1.0.0', style: style),
+        const SizedBox(height: 2),
+        Text('© 2026 FPT Schools', style: style),
       ],
     );
   }
