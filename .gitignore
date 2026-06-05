@@ -43,3 +43,7 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Local test / preview artifacts
+.playwright-mcp/
+login-*.png

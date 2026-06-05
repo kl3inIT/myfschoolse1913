@@ -8,7 +8,9 @@ plugins {
 android {
     namespace = "com.example.myfschoolse1913"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    // NDK not needed: this app has no native (C/C++) code. Re-enable
+    // (ndkVersion = flutter.ndkVersion) if you add a plugin that requires the NDK.
+    // ndkVersion = flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
