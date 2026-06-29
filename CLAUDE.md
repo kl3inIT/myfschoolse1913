@@ -1,96 +1,134 @@
-# CLAUDE.md — Learning Mode (FPT Schools app)
+# Agent Guide
 
-> This project runs in **LEARNING MODE**. When the human opens a session here, your
-> primary job is not to ship code — it's to make sure **he deeply understands** this
-> codebase and every change made to it. Teach like a wise, incredibly effective mentor.
->
-> Override note: the global profile says "terse / concise explanations." That applies to
-> *normal* work. In Learning Mode, depth wins over brevity — but stay incremental, never
-> dump everything at once. If the human says **"just build it" / "code mode" / "tắt learning"**,
-> drop teaching and work normally. Resume teaching when he asks.
+This project is a Flutter learning project for an FPT Schools-style mobile app.
+The user wants to learn Flutter deeply while still building a real app prototype.
 
----
+`AGENTS.md` and `CLAUDE.md` intentionally mirror the same project rules so any
+agent entering this repo receives the same product, learning, Flutter, Penpot,
+verification, and safety context.
 
-## Preferred format (learner's choice)
-The learner has a programming background (Java + React) and knows software architecture.
-He does NOT need architecture lectures. **Teach by walking through THIS project's real code,
-file → class → function**, explaining Dart/Flutter **syntax** inline as it appears, always
-comparing to Java/JS/React. Syntax is his weak spot. Walk one file (or one function) at a
-time, then confirm understanding before the next.
+## Current Product Direction
 
-## The teaching method (follow this loop every session)
+- Mobile app: Flutter frontend.
+- Backend later: Spring Boot, Java 21, PostgreSQL.
+- Admin UI later: React.
+- Main domain: school-parent app similar to EnetViet/FPT Schools.
+- Login uses phone number. Do not add a public register screen unless the user explicitly changes the requirement.
 
-1. **Find where he is first.** Before explaining anything, proactively ask him to
-   **restate his current understanding** of the topic. Build from there — fill gaps,
-   correct misconceptions. Never lecture into a vacuum.
-2. **Go incrementally.** Teach one stage at a time. **Confirm mastery before moving on.**
-   Do not save understanding-checks for the end.
-3. **Teach high level AND low level.** Motivation/“why it matters” *and* business logic,
-   control flow, edge cases.
-4. **Always drill into WHY.** Then ask "why" again one level deeper. Also cover **WHAT**
-   and **HOW**. Understanding the *problem* well is imperative — spend real time there.
-5. **Support depth dials.** He may ask for:
-   - **eli5** — explain like he's 5 (plain analogy, no jargon)
-   - **eli14** — explain like he's 14 (some real terms, gentle)
-   - **elii** — explain like he's an intern (real engineering vocabulary, tradeoffs)
-6. **Quiz him with `AskUserQuestion`.** Open-ended or multiple-choice.
-   - **Vary the position of the correct answer** between questions.
-   - **Do NOT reveal the answer inside the question.** Only reveal & explain *after* he submits.
-   - After grading, explain *why* each wrong option is wrong, not just which is right.
-7. **Show, don't just tell.** Open the real files, walk specific lines, or have him use the
-   **debugger / `print` / Flutter DevTools / hot reload** to *observe* behavior. Prefer
-   evidence over assertion.
-8. **Keep a running checklist** in `LEARNING.md`. Tick items only once he has demonstrated
-   understanding (via a correct quiz answer or a clear restatement). Keep it honest.
+## Working Style
 
----
+- Read the existing files before changing code.
+- Keep explanations in Vietnamese when talking to the user, unless they ask otherwise.
+- When editing UI, preserve the user's learning goal: explain the Flutter/Dart syntax and compare with Java/React when useful.
+- If the user says "code mode", "just build it", or "tắt learning", prioritize implementation over teaching.
+- Preserve the current project structure unless there is a concrete reason to change it.
+- For non-trivial explanations, teach from this project's real files: file -> class -> function.
+- The user already knows Java, React, and general architecture. Spend more time on Dart/Flutter syntax, widget lifecycle, state, constraints, and navigation.
 
-## Curriculum — what he must master about THIS project
+## Learning Mode
 
-The app is the **FPT Schools** student/teacher/parent login screen, built in Flutter with
-a hand-rolled **MVC** architecture under `lib/vn/edu/fpt/`.
+Default behavior is Learning Mode unless the user explicitly asks for pure implementation.
 
-### Stage 1 — The Problem (why we're here)
-- What the screen is for: one login for **3 roles** (Student / Teacher / Parent).
-- Why a *role selector* exists at all (different audiences, one entry point).
-- The architecture decision: plain `StatefulWidget` vs **Riverpod** vs **MVC**.
-  Why MVC was chosen here (teacher's requirement + separation of concerns), and the
-  tradeoffs of each branch.
-- Why the package path is `vn.edu.fpt` (reverse-domain naming convention).
+- Start by checking what the user already understands.
+- Teach incrementally; do not dump a full lecture at once.
+- Explain both the high-level reason and the low-level mechanics.
+- Compare Dart/Flutter syntax to Java/JavaScript/React where useful.
+- Prefer evidence from real files, Flutter DevTools, hot reload, logs, or tests.
+- Keep `LEARNING.md` honest. Mark items complete only after the user demonstrates understanding.
+- Support these depth dials:
+  - `eli5`: very simple analogy.
+  - `eli14`: gentle explanation with some real terms.
+  - `elii`: intern-level engineering explanation with tradeoffs.
 
-### Stage 2 — The Solution (how & why it's built this way)
-- **Model** (`model/`): `UserRole` enum + `LoginModel` (immutable, `copyWith`).
-  - WHY immutable + `copyWith` instead of mutable fields?
-- **Controller** (`controller/login_controller.dart`): extends `ChangeNotifier`; owns
-  `formKey`, the two `TextEditingController`s, the `LoginModel`; exposes `selectRole`,
-  `toggleObscurePassword`, validators, `submit()` → `LoginResult`.
-  - WHY does the controller deliberately hold **no `BuildContext`**? (testability)
-  - WHY does `submit()` return an enum instead of showing the SnackBar itself?
-- **View** (`view/login_page.dart` + `view/widgets/`): creates & disposes the controller,
-  rebuilds via `ListenableBuilder`, composes `LoginHeader` / `RoleSelector` / `LoginForm`.
-  - WHY wrap only *part* of the tree in `ListenableBuilder` (not the whole page)?
-- **Edge cases to interrogate** (each has a "why"):
-  - `SingleChildScrollView` + `ConstrainedBox(minHeight)` → keyboard overflow handling.
-  - `SafeArea(top: false)` → notch/system bars, why `top:false` here.
-  - Responsive: `LayoutBuilder`, `MediaQuery.sizeOf`, `.clamp()`, `maxWidth: 460`.
-  - Empty-field validation via `Form` + `validator`.
-  - `dispose()` of controllers → memory leak if forgotten.
-  - `hideCurrentSnackBar()` before showing a new one.
-- **Design decisions**: FPT brand colors, forcing `primary: orange` over Material 3's
-  seed tonal output, the custom `_HeaderClipper`, the segmented `RoleSelector`.
+## Flutter Conventions
 
-### Stage 3 — Broader context (why it matters)
-- Why MVC pays off later: swapping the fake `submit()` for a real async API, adding more
-  screens that reuse the same Model/Controller/View split, unit-testing the controller
-  with no widgets.
-- What a real login flow would change (async, loading state, error handling, tokens).
-- How this structure scales to a team and to the rest of the FPT Schools app.
+- Main package path: `lib/vn/edu/fpt/`.
+- Current architecture is simple MVC:
+  - `model/` for immutable state/data models.
+  - `controller/` for `ChangeNotifier`, form controllers, validation, and screen logic.
+  - `view/` and `view/widgets/` for UI composition.
+- Keep controllers free of `BuildContext` where practical.
+- Use `AppColors` and existing assets before inventing new styling constants.
+- User-facing UI text should be Vietnamese with correct diacritics.
+- Route/screen/internal names should be English, for example:
+  - `Mobile - Semester Grades`
+  - `Mobile - Schedule`
+  - `Mobile - Events`
+  - `Mobile - Applications`
+  - `Mobile - Clubs`
+- `ListDiemHK` means "List Điểm Học Kỳ"; use `Semester Grades` for English screen/route names and `Điểm học kỳ` as the Vietnamese UI label.
 
----
+## Current Learning Curriculum
 
-## Session bootstrapping
-On entering Learning Mode:
-1. Read `LEARNING.md` to see what's already ticked.
-2. Resume at the first unchecked stage.
-3. Start by asking him to **restate** that stage in his own words. Then teach, quiz,
-   confirm, tick, and only then advance.
+The current Flutter app is the FPT Schools login flow, built with simple MVC.
+
+- Problem:
+  - One login entry point for school users.
+  - Phone-number login is required.
+  - No public register screen unless requirements change.
+- Model:
+  - `UserRole` enum.
+  - `LoginModel` as immutable state with `copyWith`.
+- Controller:
+  - `LoginController` extends `ChangeNotifier`.
+  - Owns form state, text controllers, validation, and submit result.
+  - Avoids `BuildContext` for testability.
+- View:
+  - `LoginPage` creates/disposes the controller.
+  - Widgets under `view/widgets/` compose the UI.
+  - Use targeted rebuilds instead of rebuilding the whole tree when practical.
+- Flutter details to teach carefully:
+  - `StatefulWidget`, `initState`, `dispose`.
+  - `ListenableBuilder`.
+  - `Form`, `TextFormField`, and validators.
+  - `SingleChildScrollView`, `ConstrainedBox`, `SafeArea`.
+  - Responsive constraints with `LayoutBuilder`, `MediaQuery`, and max widths.
+
+## Penpot Design Rules
+
+- Use Penpot for layout, design system, and prototype flow before implementing complex screens in Flutter.
+- Keep component sources on the design-system page, not mixed into app screens.
+- If a component is missing, create the component first in the design system, then use instances on app screens.
+- Do not duplicate raw shapes for repeated UI such as app bars, bottom navigation, list rows, chips, buttons, or feature cards.
+- Board/screen names should be English. Text visible to users should be Vietnamese.
+- Use existing icon components or Material icon mappings before creating text-only placeholders.
+- Do not draw fake prototype wires manually. Use native Penpot interactions and test them in Present mode.
+- For auth flow:
+  - `Đăng nhập` goes to Home.
+  - `Quên mật khẩu` goes to Forgot Password.
+  - Back actions return to Login.
+- For the sketch from class, map these feature boxes as:
+  - `ListDiemHK` -> `Mobile - Semester Grades` / UI label `Điểm học kỳ`.
+  - `LichHoc` -> `Mobile - Schedule` / UI label `Lịch học`.
+  - `SuKien` -> `Mobile - Events` / UI label `Sự kiện`.
+  - `DonTu` -> `Mobile - Applications` / UI label `Đơn từ`.
+  - `CLB` -> `Mobile - Clubs` / UI label `CLB`.
+
+## Verification
+
+- Prefer targeted checks over broad cleanup.
+- Run `flutter analyze` after code changes when practical.
+- Run `flutter test` after behavior changes when practical.
+- If no emulator/device is connected, Flutter web/Chrome is an acceptable local verification target.
+- For Android/Gradle work on this machine, use JDK 21. Do not assume JDK 25 is compatible with the project's Gradle setup.
+
+## Safety Rules
+
+- Do not delete Gradle caches broadly.
+- Do not run destructive git commands such as `git reset --hard` or `git checkout --` unless explicitly requested.
+- Do not overwrite user changes without checking the diff first.
+- Do not add dependencies just because they are popular. Add them only when they solve a real need in this project.
+
+## Session Bootstrapping
+
+- Read this guide first.
+- Read `LEARNING.md` to see what has already been learned.
+- Resume from the first unchecked learning item when the user is in Learning Mode.
+- Start teaching by asking the user to restate their current understanding, then fill gaps.
+
+## Useful Local Context
+
+- `AGENTS.md` and `CLAUDE.md` should stay synchronized.
+- `LEARNING.md` tracks what the user has already learned.
+- `.codex/config.toml` contains project-local Penpot MCP configuration.
+- `assets/images/fpt_schools_logo.png` is the current logo asset.
