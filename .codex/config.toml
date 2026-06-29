@@ -1,0 +1,6 @@
+# Project-local MCP configuration for this workspace.
+# Penpot local MCP is started separately with:
+# npx -y @penpot/mcp@latest
+
+[mcp_servers.penpot]
+url = "http://localhost:4401/mcp"
