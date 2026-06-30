@@ -10,7 +10,7 @@ verification, and safety context.
 ## Current Product Direction
 
 - Mobile app: Flutter frontend.
-- Backend later: Spring Boot, Java 21, PostgreSQL.
+- Backend: Spring Boot modular monolith, PostgreSQL, JWT auth.
 - Admin UI later: React.
 - Main domain: school-parent app similar to EnetViet/FPT Schools.
 - Login uses phone number. Do not add a public register screen unless the user explicitly changes the requirement.
@@ -43,11 +43,21 @@ Default behavior is Learning Mode unless the user explicitly asks for pure imple
 ## Flutter Conventions
 
 - Main package path: `lib/vn/edu/fpt/`.
-- Current architecture is simple MVC:
-  - `model/` for immutable state/data models.
-  - `controller/` for `ChangeNotifier`, form controllers, validation, and screen logic.
-  - `view/` and `view/widgets/` for UI composition.
-- Keep controllers free of `BuildContext` where practical.
+- Current architecture follows Flutter's layered MVVM guidance:
+  - `app/` for app bootstrap, routing, config, and dependency composition.
+  - `core/` for shared theme, network helpers, result/failure types, and common utilities.
+  - `domain/` for clean app models used by UI and business logic.
+  - `data/` for DTOs, API services, repositories, and token storage.
+  - `ui/core/` for shared widgets.
+  - `ui/features/<feature>/view_models/` for `ChangeNotifier` view models and immutable UI state.
+  - `ui/features/<feature>/views/` and `widgets/` for UI composition.
+- Views should stay mostly dumb: render state, forward user actions, and do local UI-only work.
+- ViewModels own form controllers, validation, loading/error state, and commands.
+- Repositories are the boundary between UI/domain code and external data sources.
+- Services are thin wrappers around HTTP or platform plugins.
+- Keep ViewModels free of `BuildContext` where practical.
+- Use `go_router` for screen navigation and named route constants in `app_router.dart`.
+- Use `flutter_secure_storage` through `TokenStorage`; do not read/write tokens directly in widgets.
 - Use `AppColors` and existing assets before inventing new styling constants.
 - User-facing UI text should be Vietnamese with correct diacritics.
 - Route/screen/internal names should be English, for example:
@@ -58,24 +68,86 @@ Default behavior is Learning Mode unless the user explicitly asks for pure imple
   - `Mobile - Clubs`
 - `ListDiemHK` means "List Điểm Học Kỳ"; use `Semester Grades` for English screen/route names and `Điểm học kỳ` as the Vietnamese UI label.
 
+## Dart and Flutter Style Rules
+
+- Use Effective Dart and `flutter_lints` as the baseline. Keep
+  `analysis_options.yaml` on `package:flutter_lints/flutter.yaml`; do not
+  disable lints without a concrete project reason.
+- Format Dart with `dart format` / `flutter format`. Prefer trailing commas for
+  multiline widget trees and argument lists so formatter output stays readable.
+- Naming:
+  - `UpperCamelCase` for classes, enums, extensions, typedefs, and type
+    parameters.
+  - `lowerCamelCase` for variables, methods, parameters, fields, getters, and
+    named constructors.
+  - `lowercase_with_underscores` for Dart files and directories.
+  - Avoid unclear abbreviations. Treat long acronyms like normal words, for
+    example `ApiClient`, not `APIClient`.
+- Regular class member order in this project:
+  - unnamed constructor first, then named/factory constructors;
+  - fields initialized by the constructors;
+  - getters;
+  - public methods;
+  - private helpers.
+- Widget class order in this project:
+  - constructor;
+  - final fields;
+  - `createState()` or `build()`;
+  - private widget helpers only when they improve readability.
+- `State` class order in this project:
+  - owned fields/controllers;
+  - lifecycle methods such as `initState`, `didChangeDependencies`,
+    `didUpdateWidget`, and `dispose`;
+  - `build`;
+  - event handlers and private helpers.
+- Prefer `const` constructors/widgets when inputs are compile-time constants.
+  Prefer `final` for values that are assigned once. Use `late final` only when
+  lifecycle initialization is required, such as creating services in
+  `initState`.
+- Keep `build()` pure and fast: no HTTP calls, no token storage access, no
+  controller creation, and no navigation side effects inside `build()`.
+- Dispose every resource the object owns, including `TextEditingController`,
+  `FocusNode`, `AnimationController`, `ScrollController`, `http.Client`, and
+  owned routers.
+- After `await`, check `context.mounted` before using `BuildContext` for
+  navigation, snackbars, or dialogs. In a `State` object, check `mounted` before
+  calling `setState`.
+- Extract widgets when a `build()` method becomes hard to scan, but avoid
+  over-abstracting one-off layout. Reusable UI belongs under `ui/core/` or the
+  feature's `widgets/` folder.
+- Reference docs:
+  - Dart Effective Dart: https://dart.dev/effective-dart
+  - Dart lints: https://dart.dev/tools/linter-rules
+  - Flutter performance best practices:
+    https://docs.flutter.dev/perf/best-practices
+  - Flutter `State` lifecycle:
+    https://api.flutter.dev/flutter/widgets/State-class.html
+
 ## Current Learning Curriculum
 
-The current Flutter app is the FPT Schools login flow, built with simple MVC.
+The current Flutter app is the FPT Schools login flow, built with layered MVVM.
 
 - Problem:
   - One login entry point for school users.
   - Phone-number login is required.
   - No public register screen unless requirements change.
-- Model:
-  - `UserRole` enum.
-  - `LoginModel` as immutable state with `copyWith`.
-- Controller:
-  - `LoginController` extends `ChangeNotifier`.
-  - Owns form state, text controllers, validation, and submit result.
+- App:
+  - `main.dart` calls `runApp`.
+  - `MyFSchoolApp` owns app services and `GoRouter`.
+  - `AppDependencies` exposes services with an `InheritedWidget`.
+- Domain:
+  - `AppUser`, `AuthSession`, `UserRole` are clean models independent from JSON.
+- Data:
+  - `AuthApiService` calls backend auth endpoints.
+  - `AuthRepository` converts DTOs to domain models and stores tokens.
+  - `TokenStorage` wraps secure storage.
+- ViewModel:
+  - `LoginViewModel` extends `ChangeNotifier`.
+  - Owns form state, text controllers, validation, submit command, loading, and errors.
   - Avoids `BuildContext` for testability.
 - View:
-  - `LoginPage` creates/disposes the controller.
-  - Widgets under `view/widgets/` compose the UI.
+  - `LoginPage` creates/disposes the view model.
+  - Widgets under `ui/features/auth/widgets/` compose the UI.
   - Use targeted rebuilds instead of rebuilding the whole tree when practical.
 - Flutter details to teach carefully:
   - `StatefulWidget`, `initState`, `dispose`.
@@ -83,6 +155,9 @@ The current Flutter app is the FPT Schools login flow, built with simple MVC.
   - `Form`, `TextFormField`, and validators.
   - `SingleChildScrollView`, `ConstrainedBox`, `SafeArea`.
   - Responsive constraints with `LayoutBuilder`, `MediaQuery`, and max widths.
+  - Dart sealed classes and pattern matching in `Result`.
+  - DTO-to-domain mapping.
+  - `InheritedWidget` as dependency injection before adding heavier DI packages.
 
 ## Penpot Design Rules
 
