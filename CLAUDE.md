@@ -1,6 +1,7 @@
 # Agent Guide
 
-This project is a Flutter learning project for an FPT Schools-style mobile app.
+This project is a Flutter learning project for an FPT Schools-style student
+mobile app.
 The user wants to learn Flutter deeply while still building a real app prototype.
 
 `AGENTS.md` and `CLAUDE.md` intentionally mirror the same project rules so any
@@ -12,7 +13,13 @@ verification, and safety context.
 - Mobile app: Flutter frontend.
 - Backend: Spring Boot modular monolith, PostgreSQL, JWT auth.
 - Admin UI later: React.
-- Main domain: school-parent app similar to EnetViet/FPT Schools.
+- Main domain: student-facing school app similar to FPT Schools and the student
+  side of EnetViet.
+- Primary mobile role: `STUDENT`.
+- Teacher and admin experiences should be treated as web/admin UI scope unless
+  the user explicitly asks for mobile teacher/admin flows.
+- Parent experience is a separate optional scope. Do not mix parent-specific
+  copy or child-management flows into the student mobile screens.
 - Login uses phone number. Do not add a public register screen unless the user explicitly changes the requirement.
 
 ## Working Style
@@ -130,6 +137,7 @@ The current Flutter app is the FPT Schools login flow, built with layered MVVM.
 - Problem:
   - One login entry point for school users.
   - Phone-number login is required.
+  - The current mobile experience is scoped to students.
   - No public register screen unless requirements change.
 - App:
   - `main.dart` calls `runApp`.
@@ -172,6 +180,13 @@ The current Flutter app is the FPT Schools login flow, built with layered MVVM.
   - `Đăng nhập` goes to Home.
   - `Quên mật khẩu` goes to Forgot Password.
   - Back actions return to Login.
+- For student mobile scope:
+  - Home greeting should refer to `Học sinh`, not `Phụ huynh`.
+  - Keep student self-service features first: semester grades, schedule,
+    events, applications, clubs, messages, and account.
+  - Avoid parent-only flows such as selecting a child, parent approvals, tuition
+    payment, or parent-teacher communication unless parent scope is explicitly
+    added.
 - For the sketch from class, map these feature boxes as:
   - `ListDiemHK` -> `Mobile - Semester Grades` / UI label `Điểm học kỳ`.
   - `LichHoc` -> `Mobile - Schedule` / UI label `Lịch học`.

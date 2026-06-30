@@ -14,13 +14,13 @@ import vn.edu.fpt.myfschoolse1913.user.UserRole;
 public class DemoUserSeeder {
 
 	@Bean
-	ApplicationRunner seedDemoParent(AppUserRepository userRepository, PasswordEncoder passwordEncoder) {
+	ApplicationRunner seedDemoStudent(AppUserRepository userRepository, PasswordEncoder passwordEncoder) {
 		return (args) -> userRepository.findByPhoneNumber("0900000001")
 				.orElseGet(() -> userRepository.save(new AppUser(
 						"0900000001",
 						passwordEncoder.encode("Password123"),
 						"Nguyễn Minh Anh",
-						UserRole.PARENT
+						UserRole.STUDENT
 				)));
 	}
 }
