@@ -67,4 +67,19 @@ class AuthRepository {
 
     await _tokenStorage.clear();
   }
+
+  Future<Result<void>> requestPasswordReset({
+    required String phoneNumber,
+  }) async {
+    try {
+      await _authApiService.requestPasswordReset(phoneNumber: phoneNumber);
+      return const Success(null);
+    } on ApiException catch (exception) {
+      return Failure(AppFailure(exception.message, cause: exception));
+    } catch (exception) {
+      return Failure(
+        AppFailure('Không thể gửi mã xác thực lúc này', cause: exception),
+      );
+    }
+  }
 }

@@ -33,4 +33,10 @@ public class AuthController {
 	public void logout(@Valid @RequestBody RefreshTokenRequest request) {
 		authService.logout(request);
 	}
+
+	@PostMapping("/password-reset/request")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void requestPasswordReset(@Valid @RequestBody PasswordResetRequest request) {
+		authService.requestPasswordReset(request);
+	}
 }

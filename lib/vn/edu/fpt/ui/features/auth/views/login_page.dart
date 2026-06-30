@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/app/app_router.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/core/theme/app_colors.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/auth_repository.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/core/widgets/app_footer.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/auth/view_models/login_view_model.dart';
@@ -46,31 +47,31 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: FptColors.field,
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final topSpace = (constraints.maxHeight * 0.16).clamp(72.0, 128.0);
-            final logoToFormSpace = (constraints.maxHeight * 0.12).clamp(
-              56.0,
-              92.0,
-            );
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 390),
+            child: ColoredBox(
+              color: Colors.white,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final contentHeight = constraints.maxHeight < 844
+                      ? 844.0
+                      : constraints.maxHeight;
 
-            return SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: IntrinsicHeight(
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 340),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          SizedBox(height: topSpace),
-                          const AuthHeader(),
-                          SizedBox(height: logoToFormSpace),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 24),
-                            child: ListenableBuilder(
+                  return SingleChildScrollView(
+                    child: SizedBox(
+                      height: contentHeight,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            const SizedBox(height: 142),
+                            const AuthHeader(),
+                            const SizedBox(height: 173),
+                            ListenableBuilder(
                               listenable: _viewModel,
                               builder: (context, _) {
                                 return LoginForm(
@@ -81,20 +82,20 @@ class _LoginPageState extends State<LoginPage> {
                                 );
                               },
                             ),
-                          ),
-                          const Spacer(),
-                          const Padding(
-                            padding: EdgeInsets.only(top: 24, bottom: 16),
-                            child: AppFooter(),
-                          ),
-                        ],
+                            const Spacer(),
+                            const Padding(
+                              padding: EdgeInsets.only(bottom: 12),
+                              child: AppFooter(),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
-            );
-          },
+            ),
+          ),
         ),
       ),
     );

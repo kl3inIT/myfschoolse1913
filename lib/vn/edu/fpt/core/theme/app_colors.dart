@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 /// FPT Schools brand palette.
 abstract final class FptColors {
   static const Color orange = Color(0xFFF37021);
-  static const Color orangeDeep = Color(0xFFE2580C);
+  static const Color orangeDeep = Color(0xFFC2410C);
   static const Color green = Color(0xFF51B848);
   static const Color blue = Color(0xFF034EA2);
 

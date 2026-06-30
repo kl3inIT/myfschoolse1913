@@ -32,7 +32,7 @@ class LoginForm extends StatelessWidget {
             ),
             validator: viewModel.validatePhone,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           TextFormField(
             controller: viewModel.passwordController,
             enabled: !viewModel.isSubmitting,
@@ -59,26 +59,32 @@ class LoginForm extends StatelessWidget {
             ),
             validator: viewModel.validatePassword,
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 4),
           Align(
             alignment: Alignment.centerRight,
-            child: TextButton(
-              style: TextButton.styleFrom(
-                minimumSize: const Size(0, 36),
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            child: SizedBox(
+              width: 160,
+              height: 44,
+              child: TextButton(
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                onPressed: viewModel.isSubmitting ? null : onForgotPassword,
+                child: const Text('Quên mật khẩu?'),
               ),
-              onPressed: viewModel.isSubmitting ? null : onForgotPassword,
-              child: const Text('Quên mật khẩu?'),
             ),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 16),
           FilledButton(
             onPressed: viewModel.isSubmitting ? null : onLogin,
             child: viewModel.isSubmitting
                 ? const SizedBox.square(
                     dimension: 22,
-                    child: CircularProgressIndicator(strokeWidth: 2.2),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.2,
+                      color: Colors.white,
+                    ),
                   )
                 : const Text('Đăng nhập'),
           ),

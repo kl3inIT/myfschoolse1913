@@ -27,7 +27,10 @@ GoRouter createAppRouter() {
       GoRoute(
         path: AppRoutes.forgotPassword,
         pageBuilder: (context, state) {
-          return const NoTransitionPage(child: ForgotPasswordPage());
+          final services = AppDependencies.of(context);
+          return NoTransitionPage(
+            child: ForgotPasswordPage(authRepository: services.authRepository),
+          );
         },
       ),
       GoRoute(

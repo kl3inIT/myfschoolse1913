@@ -8,7 +8,8 @@ class AuthHeader extends StatelessWidget {
     return Center(
       child: Image.asset(
         'assets/images/fpt_schools_logo.png',
-        width: 190,
+        width: 210,
+        height: 105,
         fit: BoxFit.contain,
       ),
     );

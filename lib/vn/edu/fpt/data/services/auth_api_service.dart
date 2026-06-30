@@ -33,4 +33,11 @@ class AuthApiService {
       body: {'refreshToken': refreshToken},
     );
   }
+
+  Future<void> requestPasswordReset({required String phoneNumber}) {
+    return _apiClient.postJsonVoid(
+      '/api/auth/password-reset/request',
+      body: {'phoneNumber': phoneNumber},
+    );
+  }
 }

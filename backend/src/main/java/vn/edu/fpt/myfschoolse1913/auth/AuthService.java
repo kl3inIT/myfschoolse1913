@@ -71,6 +71,12 @@ public class AuthService {
 				.ifPresent((token) -> token.revoke(now));
 	}
 
+	@Transactional(readOnly = true)
+	public void requestPasswordReset(PasswordResetRequest request) {
+		userRepository.findByPhoneNumber(request.phoneNumber().trim())
+				.filter(AppUser::isEnabled);
+	}
+
 	private AuthResponse issueTokens(AppUser user) {
 		var now = Instant.now(clock);
 		var accessTokenExpiresAt = now.plus(authProperties.accessTokenTtl());
