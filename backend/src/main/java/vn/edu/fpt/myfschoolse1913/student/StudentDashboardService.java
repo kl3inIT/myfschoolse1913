@@ -5,32 +5,34 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.fpt.myfschoolse1913.shared.UnauthorizedException;
-import vn.edu.fpt.myfschoolse1913.user.AppUserRepository;
 import vn.edu.fpt.myfschoolse1913.user.UserRole;
 
 @Service
 public class StudentDashboardService {
 
-	private final AppUserRepository userRepository;
+	private final StudentRepository studentRepository;
 
-	public StudentDashboardService(AppUserRepository userRepository) {
-		this.userRepository = userRepository;
+	public StudentDashboardService(StudentRepository studentRepository) {
+		this.studentRepository = studentRepository;
 	}
 
 	@Transactional(readOnly = true)
 	public StudentDashboardResponse getDashboard(UUID userId) {
-		var user = userRepository.findById(userId)
-				.filter((candidate) -> candidate.isEnabled() && candidate.getRole() == UserRole.STUDENT)
+		var student = studentRepository.findByUserIdWithClass(userId)
+				.filter((candidate) -> candidate.getUser().isEnabled() && candidate.getUser().getRole() == UserRole.STUDENT)
 				.orElseThrow(() -> new UnauthorizedException("Student session is no longer valid"));
+		var user = student.getUser();
+		var schoolClass = student.getSchoolClass();
+		var academicYear = schoolClass.getAcademicYear();
 
 		return new StudentDashboardResponse(
 				new StudentDashboardResponse.StudentSummary(
 						user.getId(),
 						user.getFullName(),
 						user.getRole(),
-						"Lớp 5A1",
-						"Năm học 2026",
-						"Đang học",
+						schoolClass.getName(),
+						academicYear.getName(),
+						student.getStatus(),
 						initials(user.getFullName())
 				),
 				List.of(

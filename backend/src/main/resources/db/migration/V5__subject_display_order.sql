@@ -1,0 +1,11 @@
+ALTER TABLE subjects
+    ADD COLUMN display_order INTEGER NOT NULL DEFAULT 0;
+
+UPDATE subjects
+SET display_order = CASE code
+    WHEN 'MATH' THEN 10
+    WHEN 'VIETNAMESE' THEN 20
+    WHEN 'ENGLISH' THEN 30
+    WHEN 'SCIENCE' THEN 40
+    ELSE 100
+END;
