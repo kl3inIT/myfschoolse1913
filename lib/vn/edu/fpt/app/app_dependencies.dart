@@ -4,16 +4,26 @@ import 'package:myfschoolse1913/vn/edu/fpt/app/app_config.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/app/app_session_controller.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/core/network/api_client.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/auth_repository.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/dashboard_repository.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/user_repository.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/data/services/authenticated_api_client.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/services/auth_api_service.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/data/services/dashboard_api_service.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/services/token_storage.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/data/services/user_api_service.dart';
 
 class AppServices {
   AppServices._({
     required this.httpClient,
     required this.apiClient,
     required this.authApiService,
+    required this.authenticatedApiClient,
+    required this.dashboardApiService,
+    required this.userApiService,
     required this.tokenStorage,
     required this.authRepository,
+    required this.dashboardRepository,
+    required this.userRepository,
     required this.sessionController,
   });
 
@@ -22,10 +32,21 @@ class AppServices {
     final apiClient = ApiClient(baseUri: config.apiBaseUri, client: httpClient);
     final authApiService = AuthApiService(apiClient);
     final tokenStorage = SecureTokenStorage();
+    final authenticatedApiClient = AuthenticatedApiClient(
+      apiClient: apiClient,
+      authApiService: authApiService,
+      tokenStorage: tokenStorage,
+    );
+    final dashboardApiService = DashboardApiService(authenticatedApiClient);
+    final userApiService = UserApiService(authenticatedApiClient);
     final authRepository = AuthRepository(
       authApiService: authApiService,
       tokenStorage: tokenStorage,
     );
+    final dashboardRepository = DashboardRepository(
+      dashboardApiService: dashboardApiService,
+    );
+    final userRepository = UserRepository(userApiService: userApiService);
     final sessionController = AppSessionController(
       authRepository: authRepository,
     );
@@ -34,8 +55,13 @@ class AppServices {
       httpClient: httpClient,
       apiClient: apiClient,
       authApiService: authApiService,
+      authenticatedApiClient: authenticatedApiClient,
+      dashboardApiService: dashboardApiService,
+      userApiService: userApiService,
       tokenStorage: tokenStorage,
       authRepository: authRepository,
+      dashboardRepository: dashboardRepository,
+      userRepository: userRepository,
       sessionController: sessionController,
     );
   }
@@ -43,8 +69,13 @@ class AppServices {
   final http.Client httpClient;
   final ApiClient apiClient;
   final AuthApiService authApiService;
+  final AuthenticatedApiClient authenticatedApiClient;
+  final DashboardApiService dashboardApiService;
+  final UserApiService userApiService;
   final TokenStorage tokenStorage;
   final AuthRepository authRepository;
+  final DashboardRepository dashboardRepository;
+  final UserRepository userRepository;
   final AppSessionController sessionController;
 
   void dispose() {

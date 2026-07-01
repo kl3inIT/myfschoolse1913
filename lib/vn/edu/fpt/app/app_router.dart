@@ -113,7 +113,10 @@ GoRouter createAppRouter({required AppSessionController sessionController}) {
         pageBuilder: (context, state) {
           final services = AppDependencies.of(context);
           return NoTransitionPage(
-            child: HomePage(authRepository: services.authRepository),
+            child: HomePage(
+              dashboardRepository: services.dashboardRepository,
+              sessionController: services.sessionController,
+            ),
           );
         },
       ),

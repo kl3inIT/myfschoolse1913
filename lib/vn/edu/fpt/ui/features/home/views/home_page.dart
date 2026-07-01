@@ -1,11 +1,56 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/app/app_router.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/app/app_session_controller.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/core/theme/app_colors.dart';
-import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/auth_repository.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/dashboard_repository.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/domain/models/student_dashboard.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/domain/models/user_role.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/ui/features/home/view_models/home_view_model.dart';
 
-class HomePage extends StatelessWidget {
-  const HomePage({super.key, required this.authRepository});
+class HomePage extends StatefulWidget {
+  const HomePage({
+    super.key,
+    required this.dashboardRepository,
+    required this.sessionController,
+  });
 
-  final AuthRepository authRepository;
+  final DashboardRepository dashboardRepository;
+  final AppSessionController sessionController;
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  late final HomeViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = HomeViewModel(dashboardRepository: widget.dashboardRepository);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadDashboard();
+    });
+  }
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadDashboard() async {
+    final result = await _viewModel.loadDashboard();
+    if (!mounted || result != HomeLoadResult.sessionExpired) {
+      return;
+    }
+
+    await widget.sessionController.logout();
+    if (mounted) {
+      context.go(AppRoutes.login);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,14 +60,29 @@ class HomePage extends StatelessWidget {
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 390),
-            child: const ColoredBox(
+            child: ColoredBox(
               color: Colors.white,
-              child: Column(
-                children: [
-                  _DashboardHeader(),
-                  Expanded(child: _DashboardContent()),
-                  _DashboardBottomNav(),
-                ],
+              child: ListenableBuilder(
+                listenable: _viewModel,
+                builder: (context, _) {
+                  final state = _viewModel.state;
+                  final dashboard = state.dashboard;
+
+                  return Column(
+                    children: [
+                      _DashboardHeader(dashboard: dashboard),
+                      Expanded(
+                        child: _DashboardBody(
+                          dashboard: dashboard,
+                          isLoading: state.isLoading,
+                          errorMessage: state.errorMessage,
+                          onRetry: _loadDashboard,
+                        ),
+                      ),
+                      const _DashboardBottomNav(),
+                    ],
+                  );
+                },
               ),
             ),
           ),
@@ -33,10 +93,14 @@ class HomePage extends StatelessWidget {
 }
 
 class _DashboardHeader extends StatelessWidget {
-  const _DashboardHeader();
+  const _DashboardHeader({required this.dashboard});
+
+  final StudentDashboard? dashboard;
 
   @override
   Widget build(BuildContext context) {
+    final roleLabel = dashboard?.student.role.label ?? 'Học sinh';
+
     return Container(
       height: 96,
       color: FptColors.orangeDeep,
@@ -46,7 +110,7 @@ class _DashboardHeader extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              'Xin chào, Học sinh',
+              'Xin chào, $roleLabel',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -68,41 +132,56 @@ class _DashboardHeader extends StatelessWidget {
   }
 }
 
-class _DashboardContent extends StatelessWidget {
-  const _DashboardContent();
+class _DashboardBody extends StatelessWidget {
+  const _DashboardBody({
+    required this.dashboard,
+    required this.isLoading,
+    required this.errorMessage,
+    required this.onRetry,
+  });
+
+  final StudentDashboard? dashboard;
+  final bool isLoading;
+  final String? errorMessage;
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
+    final loadedDashboard = dashboard;
+
+    if (isLoading && loadedDashboard == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (loadedDashboard == null) {
+      return _DashboardError(message: errorMessage, onRetry: onRetry);
+    }
+
     return ListView(
       padding: const EdgeInsets.fromLTRB(24, 28, 24, 0),
-      children: const [
-        _StudentSummaryCard(),
-        SizedBox(height: 34),
-        _SectionTitle('Tiện ích'),
-        SizedBox(height: 20),
-        _FeatureGrid(),
-        SizedBox(height: 28),
-        _SectionTitle('Hôm nay'),
-        SizedBox(height: 12),
-        _TodayScheduleTile(
-          title: 'Toán học',
-          subtitle: 'Tiết 1 - Phòng A203',
-          time: '07:30',
-        ),
-        SizedBox(height: 8),
-        _TodayScheduleTile(
-          title: 'Ăn trưa',
-          subtitle: '11:15 - Nhà ăn',
-          time: '11:15',
-        ),
-        SizedBox(height: 20),
+      children: [
+        _StudentSummaryCard(student: loadedDashboard.student),
+        const SizedBox(height: 34),
+        const _SectionTitle('Tiện ích'),
+        const SizedBox(height: 20),
+        _FeatureGrid(shortcuts: loadedDashboard.shortcuts),
+        const SizedBox(height: 28),
+        const _SectionTitle('Hôm nay'),
+        const SizedBox(height: 12),
+        for (final item in loadedDashboard.todaySchedule) ...[
+          _TodayScheduleTile(item: item),
+          const SizedBox(height: 8),
+        ],
+        const SizedBox(height: 20),
       ],
     );
   }
 }
 
 class _StudentSummaryCard extends StatelessWidget {
-  const _StudentSummaryCard();
+  const _StudentSummaryCard({required this.student});
+
+  final DashboardStudent student;
 
   @override
   Widget build(BuildContext context) {
@@ -116,13 +195,13 @@ class _StudentSummaryCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const CircleAvatar(
+          CircleAvatar(
             radius: 24,
             backgroundColor: FptColors.orangeDeep,
             foregroundColor: Colors.white,
             child: Text(
-              'MA',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+              student.initials,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
             ),
           ),
           const SizedBox(width: 18),
@@ -132,7 +211,7 @@ class _StudentSummaryCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Nguyễn Minh Anh',
+                  student.fullName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
@@ -143,7 +222,7 @@ class _StudentSummaryCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Lớp 5A1',
+                  student.className,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: FptColors.textSecondary,
                     height: 1.2,
@@ -151,7 +230,7 @@ class _StudentSummaryCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Năm học 2026',
+                  student.schoolYear,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: FptColors.textSecondary,
                     height: 1.2,
@@ -161,7 +240,7 @@ class _StudentSummaryCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          const _StatusChip(text: 'Đang học'),
+          _StatusChip(text: student.status),
         ],
       ),
     );
@@ -214,22 +293,16 @@ class _SectionTitle extends StatelessWidget {
 }
 
 class _FeatureGrid extends StatelessWidget {
-  const _FeatureGrid();
+  const _FeatureGrid({required this.shortcuts});
 
-  static const _items = [
-    _FeatureItem(Icons.fact_check_outlined, 'Điểm học kỳ'),
-    _FeatureItem(Icons.calendar_month_outlined, 'Lịch học'),
-    _FeatureItem(Icons.notifications_outlined, 'Sự kiện'),
-    _FeatureItem(Icons.description_outlined, 'Đơn từ'),
-    _FeatureItem(Icons.groups_outlined, 'CLB'),
-  ];
+  final List<DashboardShortcut> shortcuts;
 
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: _items.length,
+      itemCount: shortcuts.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         mainAxisExtent: 88,
@@ -237,24 +310,17 @@ class _FeatureGrid extends StatelessWidget {
         crossAxisSpacing: 14,
       ),
       itemBuilder: (context, index) {
-        final item = _items[index];
-        return _FeatureCard(item: item);
+        final shortcut = shortcuts[index];
+        return _FeatureCard(shortcut: shortcut);
       },
     );
   }
 }
 
-class _FeatureItem {
-  const _FeatureItem(this.icon, this.label);
-
-  final IconData icon;
-  final String label;
-}
-
 class _FeatureCard extends StatelessWidget {
-  const _FeatureCard({required this.item});
+  const _FeatureCard({required this.shortcut});
 
-  final _FeatureItem item;
+  final DashboardShortcut shortcut;
 
   @override
   Widget build(BuildContext context) {
@@ -272,14 +338,14 @@ class _FeatureCard extends StatelessWidget {
               color: FptColors.blue,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(item.icon, color: Colors.white, size: 24),
+            child: Icon(_iconFor(shortcut.code), color: Colors.white, size: 24),
           ),
           const SizedBox(height: 8),
           SizedBox(
             height: 20,
             child: Center(
               child: Text(
-                item.label,
+                shortcut.label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
@@ -295,18 +361,23 @@ class _FeatureCard extends StatelessWidget {
       ),
     );
   }
+
+  IconData _iconFor(String code) {
+    return switch (code) {
+      'SEMESTER_GRADES' => Icons.fact_check_outlined,
+      'SCHEDULE' => Icons.calendar_month_outlined,
+      'EVENTS' => Icons.notifications_outlined,
+      'APPLICATIONS' => Icons.description_outlined,
+      'CLUBS' => Icons.groups_outlined,
+      _ => Icons.apps_outlined,
+    };
+  }
 }
 
 class _TodayScheduleTile extends StatelessWidget {
-  const _TodayScheduleTile({
-    required this.title,
-    required this.subtitle,
-    required this.time,
-  });
+  const _TodayScheduleTile({required this.item});
 
-  final String title;
-  final String subtitle;
-  final String time;
+  final TodayScheduleItem item;
 
   @override
   Widget build(BuildContext context) {
@@ -341,7 +412,7 @@ class _TodayScheduleTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
+                  item.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -352,7 +423,7 @@ class _TodayScheduleTile extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  subtitle,
+                  item.subtitle,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
@@ -367,7 +438,7 @@ class _TodayScheduleTile extends StatelessWidget {
           SizedBox(
             width: 52,
             child: Text(
-              time,
+              item.time,
               maxLines: 1,
               textAlign: TextAlign.right,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -378,6 +449,36 @@ class _TodayScheduleTile extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _DashboardError extends StatelessWidget {
+  const _DashboardError({required this.message, required this.onRetry});
+
+  final String? message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              message ?? 'Không thể tải trang chủ',
+              textAlign: TextAlign.center,
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: FptColors.textSecondary),
+            ),
+            const SizedBox(height: 16),
+            FilledButton(onPressed: onRetry, child: const Text('Thử lại')),
+          ],
+        ),
       ),
     );
   }

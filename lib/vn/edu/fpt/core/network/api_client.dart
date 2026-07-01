@@ -11,6 +11,19 @@ class ApiClient {
   final Uri _baseUri;
   final http.Client _client;
 
+  Future<Map<String, Object?>> getJsonObject(
+    String path, {
+    String? bearerToken,
+  }) async {
+    final response = await _client.get(
+      _resolve(path),
+      headers: _headers(bearerToken),
+    );
+
+    _throwIfFailed(response);
+    return _decodeObject(response.body);
+  }
+
   Future<Map<String, Object?>> postJsonObject(
     String path, {
     Map<String, Object?>? body,
@@ -23,15 +36,7 @@ class ApiClient {
     );
 
     _throwIfFailed(response);
-    final decoded = jsonDecode(response.body);
-    if (decoded is Map<String, Object?>) {
-      return decoded;
-    }
-
-    throw const ApiException(
-      statusCode: 500,
-      message: 'Phản hồi máy chủ không hợp lệ',
-    );
+    return _decodeObject(response.body);
   }
 
   Future<void> postJsonVoid(
@@ -46,6 +51,18 @@ class ApiClient {
     );
 
     _throwIfFailed(response);
+  }
+
+  Map<String, Object?> _decodeObject(String responseBody) {
+    final decoded = jsonDecode(responseBody);
+    if (decoded is Map<String, Object?>) {
+      return decoded;
+    }
+
+    throw const ApiException(
+      statusCode: 500,
+      message: 'Phản hồi máy chủ không hợp lệ',
+    );
   }
 
   Uri _resolve(String path) {
