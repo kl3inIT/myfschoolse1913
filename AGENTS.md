@@ -47,6 +47,35 @@ Default behavior is Learning Mode unless the user explicitly asks for pure imple
   - `eli14`: gentle explanation with some real terms.
   - `elii`: intern-level engineering explanation with tradeoffs.
 
+## Backend Conventions
+
+- Backend is a Spring Boot modular monolith. Keep the root Java package split by
+  business module/domain first, not by technical layer.
+- Current root modules include `auth`, `user`, `student`, `security`, and
+  `shared`. Add new root modules only when a business capability has its own
+  rules, data, lifecycle, and API surface, for example `grades`, `timetable`,
+  `applications`, `clubs`, or `notifications`.
+- Do not create root-level `controller/`, `service/`, `repository/`, or
+  `entity/` packages. Technical layers belong inside a module when needed.
+- Keep small modules flat while they are easy to scan. Split a module internally
+  only when the file count or responsibilities make navigation harder.
+- Preferred internal module layout, when a module becomes large enough:
+  - `web/` for controllers, request DTOs, and response DTOs.
+  - `application/` for use-case services and transaction boundaries.
+  - `domain/` for JPA entities, value objects, domain enums, and domain rules.
+  - `persistence/` for Spring Data repositories, custom queries, and database adapters.
+- In this project, JPA entities can serve as domain entities. Do not introduce
+  separate persistence entities and mappers unless the mapping removes real
+  complexity.
+- For read queries, start with Spring Data JPA repositories. Use fetch joins,
+  `@EntityGraph`, or DTO projections to avoid N+1 before reaching for
+  `JdbcTemplate`/`JdbcClient`. Use JDBC-style reads for complex reporting,
+  heavy aggregation, or SQL that becomes awkward in JPA.
+- Use Spring Modulith boundaries deliberately: module dependencies should flow
+  through public APIs/events, not by reaching into another module's internals.
+  Add `@ApplicationModule`, `@NamedInterface`, or application events only when
+  the boundary needs to be enforced or decoupled.
+
 ## Flutter Conventions
 
 - Main package path: `lib/vn/edu/fpt/`.
