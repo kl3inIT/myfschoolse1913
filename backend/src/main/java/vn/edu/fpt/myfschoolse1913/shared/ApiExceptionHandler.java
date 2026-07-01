@@ -25,6 +25,11 @@ public class ApiExceptionHandler {
 		return build(HttpStatus.BAD_REQUEST, message, request);
 	}
 
+	@ExceptionHandler(RateLimitExceededException.class)
+	ResponseEntity<ApiError> handleRateLimit(RateLimitExceededException exception, HttpServletRequest request) {
+		return build(HttpStatus.TOO_MANY_REQUESTS, exception.getMessage(), request);
+	}
+
 	private ResponseEntity<ApiError> build(HttpStatus status, String message, HttpServletRequest request) {
 		return ResponseEntity.status(status).body(new ApiError(
 				Instant.now(),

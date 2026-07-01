@@ -33,7 +33,18 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
   Future<void> _submit() async {
     FocusScope.of(context).unfocus();
-    await _viewModel.submit();
+    final result = await _viewModel.submit();
+    if (!mounted || result != ForgotPasswordSubmitResult.success) {
+      return;
+    }
+
+    context.go(
+      AppRoutes.verifyOtp,
+      extra: PasswordResetOtpRouteData(
+        phoneNumber: _viewModel.state.phoneNumber!,
+        debugOtp: _viewModel.state.debugOtp,
+      ),
+    );
   }
 
   void _backToLogin() {

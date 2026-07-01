@@ -37,6 +37,12 @@ app:
   auth:
     access-token-ttl: ${ACCESS_TOKEN_TTL:15m}
     refresh-token-ttl: ${REFRESH_TOKEN_TTL:30d}
+    password-reset-otp-ttl: ${PASSWORD_RESET_OTP_TTL:5m}
+    password-reset-token-ttl: ${PASSWORD_RESET_TOKEN_TTL:10m}
+    password-reset-request-cooldown: ${PASSWORD_RESET_REQUEST_COOLDOWN:60s}
+    password-reset-max-requests-per-hour: ${PASSWORD_RESET_MAX_REQUESTS_PER_HOUR:5}
+    password-reset-max-verify-attempts: ${PASSWORD_RESET_MAX_VERIFY_ATTEMPTS:5}
+    expose-password-reset-otp: ${EXPOSE_PASSWORD_RESET_OTP:true}
   bootstrap:
     demo-user:
       enabled: ${SEED_DEMO_USER:false}

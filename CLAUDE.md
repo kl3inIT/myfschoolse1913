@@ -170,9 +170,15 @@ The current Flutter app is the FPT Schools login flow, built with layered MVVM.
 ## Penpot Design Rules
 
 - Use Penpot for layout, design system, and prototype flow before implementing complex screens in Flutter.
+- If a Flutter screen does not already exist in Penpot, create or update the Penpot board first, validate the design there, then implement the Flutter screen from that design.
 - Keep component sources on the design-system page, not mixed into app screens.
 - If a component is missing, create the component first in the design system, then use instances on app screens.
 - Do not duplicate raw shapes for repeated UI such as app bars, bottom navigation, list rows, chips, buttons, or feature cards.
+- Component discipline:
+  - In Penpot, split reusable UI into components and use component instances on screens.
+  - In Flutter, keep Material widgets as primitives (`FilledButton`, `TextFormField`, `IconButton`, `NavigationBar`, `Card`, `ListTile`) and style them through `ThemeData`.
+  - Create custom Flutter widgets only for app-specific repeated patterns or behavior, such as auth layouts, loading buttons, student navigation, feature shortcuts, status chips, and school list rows.
+  - Do not wrap every Material primitive just for abstraction; avoid over-componentizing one-off UI.
 - Board/screen names should be English. Text visible to users should be Vietnamese.
 - Use existing icon components or Material icon mappings before creating text-only placeholders.
 - Do not draw fake prototype wires manually. Use native Penpot interactions and test them in Present mode.

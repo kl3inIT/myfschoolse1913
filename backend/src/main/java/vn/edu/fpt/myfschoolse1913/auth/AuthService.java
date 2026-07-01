@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.fpt.myfschoolse1913.security.AuthProperties;
+import vn.edu.fpt.myfschoolse1913.shared.RateLimitExceededException;
 import vn.edu.fpt.myfschoolse1913.user.AppUser;
 import vn.edu.fpt.myfschoolse1913.user.AppUserRepository;
 
@@ -22,6 +23,7 @@ public class AuthService {
 
 	private final AppUserRepository userRepository;
 	private final RefreshTokenRepository refreshTokenRepository;
+	private final PasswordResetOtpRepository passwordResetOtpRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final JwtEncoder jwtEncoder;
 	private final AuthProperties authProperties;
@@ -31,12 +33,14 @@ public class AuthService {
 	public AuthService(
 			AppUserRepository userRepository,
 			RefreshTokenRepository refreshTokenRepository,
+			PasswordResetOtpRepository passwordResetOtpRepository,
 			PasswordEncoder passwordEncoder,
 			JwtEncoder jwtEncoder,
 			AuthProperties authProperties
 	) {
 		this.userRepository = userRepository;
 		this.refreshTokenRepository = refreshTokenRepository;
+		this.passwordResetOtpRepository = passwordResetOtpRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.jwtEncoder = jwtEncoder;
 		this.authProperties = authProperties;
@@ -71,10 +75,68 @@ public class AuthService {
 				.ifPresent((token) -> token.revoke(now));
 	}
 
-	@Transactional(readOnly = true)
-	public void requestPasswordReset(PasswordResetRequest request) {
-		userRepository.findByPhoneNumber(request.phoneNumber().trim())
+	@Transactional
+	public PasswordResetRequestResponse requestPasswordReset(PasswordResetRequest request) {
+		var phoneNumber = request.phoneNumber().trim();
+		var user = userRepository.findByPhoneNumber(phoneNumber)
 				.filter(AppUser::isEnabled);
+
+		if (user.isEmpty()) {
+			return PasswordResetRequestResponse.accepted(null);
+		}
+
+		var now = Instant.now(clock);
+		enforcePasswordResetRateLimit(phoneNumber, now);
+
+		passwordResetOtpRepository.findByUserAndConsumedAtIsNull(user.get())
+				.forEach((otp) -> otp.consume(now));
+
+		var rawOtp = generateOtp();
+		var otp = new PasswordResetOtp(
+				user.get(),
+				phoneNumber,
+				hashToken(rawOtp),
+				now.plus(authProperties.passwordResetOtpTtl())
+		);
+		passwordResetOtpRepository.save(otp);
+
+		var debugOtp = authProperties.exposePasswordResetOtp() ? rawOtp : null;
+		return PasswordResetRequestResponse.accepted(debugOtp);
+	}
+
+	@Transactional(noRollbackFor = InvalidCredentialsException.class)
+	public PasswordResetVerifyResponse verifyPasswordResetOtp(PasswordResetVerifyRequest request) {
+		var phoneNumber = request.phoneNumber().trim();
+		var now = Instant.now(clock);
+		var otp = passwordResetOtpRepository
+				.findFirstByPhoneNumberAndConsumedAtIsNullOrderByCreatedAtDesc(phoneNumber)
+				.filter((candidate) -> candidate.isOtpActive(now, authProperties.passwordResetMaxVerifyAttempts()))
+				.orElseThrow(InvalidCredentialsException::new);
+
+		if (!otp.matchesOtpHash(hashToken(request.otp().trim()))) {
+			otp.registerFailedAttempt();
+			throw new InvalidCredentialsException();
+		}
+
+		var resetToken = generateRefreshToken();
+		otp.verify(
+				hashToken(resetToken),
+				now.plus(authProperties.passwordResetTokenTtl()),
+				now
+		);
+		return new PasswordResetVerifyResponse(resetToken);
+	}
+
+	@Transactional
+	public void confirmPasswordReset(PasswordResetConfirmRequest request) {
+		var now = Instant.now(clock);
+		var otp = passwordResetOtpRepository
+				.findByResetTokenHashAndConsumedAtIsNull(hashToken(request.resetToken().trim()))
+				.filter((candidate) -> candidate.isResetTokenActive(now))
+				.orElseThrow(InvalidCredentialsException::new);
+
+		otp.consume(now);
+		otp.getUser().updatePasswordHash(passwordEncoder.encode(request.newPassword()));
 	}
 
 	private AuthResponse issueTokens(AppUser user) {
@@ -115,6 +177,26 @@ public class AuthService {
 		var bytes = new byte[64];
 		secureRandom.nextBytes(bytes);
 		return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+	}
+
+	private String generateOtp() {
+		return String.format("%06d", secureRandom.nextInt(1_000_000));
+	}
+
+	private void enforcePasswordResetRateLimit(String phoneNumber, Instant now) {
+		var createdAfter = now.minus(authProperties.passwordResetRequestCooldown());
+		var recentRequests = passwordResetOtpRepository.countByPhoneNumberAndCreatedAtAfter(phoneNumber, createdAfter);
+		if (recentRequests > 0) {
+			throw new RateLimitExceededException("Vui lòng chờ trước khi gửi lại mã xác thực");
+		}
+
+		var hourlyRequests = passwordResetOtpRepository.countByPhoneNumberAndCreatedAtAfter(
+				phoneNumber,
+				now.minusSeconds(3600)
+		);
+		if (hourlyRequests >= authProperties.passwordResetMaxRequestsPerHour()) {
+			throw new RateLimitExceededException("Bạn đã yêu cầu quá nhiều mã xác thực. Vui lòng thử lại sau");
+		}
 	}
 
 	private String hashToken(String token) {

@@ -3,6 +3,8 @@ import 'package:myfschoolse1913/vn/edu/fpt/core/result/result.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/auth_repository.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/auth/view_models/forgot_password_state.dart';
 
+enum ForgotPasswordSubmitResult { invalid, success, failure }
+
 class ForgotPasswordViewModel extends ChangeNotifier {
   ForgotPasswordViewModel({required AuthRepository authRepository})
     : _authRepository = authRepository;
@@ -27,37 +29,43 @@ class ForgotPasswordViewModel extends ChangeNotifier {
     return null;
   }
 
-  Future<void> submit() async {
+  Future<ForgotPasswordSubmitResult> submit() async {
     final isValid = formKey.currentState?.validate() ?? false;
     if (!isValid || _state.isSubmitting) {
-      return;
+      return ForgotPasswordSubmitResult.invalid;
     }
 
+    final phoneNumber = phoneController.text.trim();
     _state = _state.copyWith(
       isSubmitting: true,
+      phoneNumber: phoneNumber,
       clearSuccessMessage: true,
       clearErrorMessage: true,
+      clearDebugOtp: true,
     );
     notifyListeners();
 
     final result = await _authRepository.requestPasswordReset(
-      phoneNumber: phoneController.text.trim(),
+      phoneNumber: phoneNumber,
     );
 
     switch (result) {
-      case Success():
+      case Success(value: final value):
         _state = _state.copyWith(
           isSubmitting: false,
-          successMessage:
-              'Nếu số điện thoại hợp lệ, mã xác thực sẽ được gửi trong ít phút.',
+          successMessage: value.message,
+          debugOtp: value.debugOtp,
         );
+        notifyListeners();
+        return ForgotPasswordSubmitResult.success;
       case Failure(failure: final failure):
         _state = _state.copyWith(
           isSubmitting: false,
           errorMessage: failure.message,
         );
+        notifyListeners();
+        return ForgotPasswordSubmitResult.failure;
     }
-    notifyListeners();
   }
 
   @override

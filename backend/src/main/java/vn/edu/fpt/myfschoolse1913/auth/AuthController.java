@@ -35,8 +35,18 @@ public class AuthController {
 	}
 
 	@PostMapping("/password-reset/request")
+	public PasswordResetRequestResponse requestPasswordReset(@Valid @RequestBody PasswordResetRequest request) {
+		return authService.requestPasswordReset(request);
+	}
+
+	@PostMapping("/password-reset/verify")
+	public PasswordResetVerifyResponse verifyPasswordResetOtp(@Valid @RequestBody PasswordResetVerifyRequest request) {
+		return authService.verifyPasswordResetOtp(request);
+	}
+
+	@PostMapping("/password-reset/confirm")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public void requestPasswordReset(@Valid @RequestBody PasswordResetRequest request) {
-		authService.requestPasswordReset(request);
+	public void confirmPasswordReset(@Valid @RequestBody PasswordResetConfirmRequest request) {
+		authService.confirmPasswordReset(request);
 	}
 }

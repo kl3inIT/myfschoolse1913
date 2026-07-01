@@ -73,4 +73,9 @@ public class AppUser {
 	public boolean isEnabled() {
 		return enabled;
 	}
+
+	public void updatePasswordHash(String passwordHash) {
+		this.passwordHash = passwordHash;
+		this.updatedAt = Instant.now();
+	}
 }
