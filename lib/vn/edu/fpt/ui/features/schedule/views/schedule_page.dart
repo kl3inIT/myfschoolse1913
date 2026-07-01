@@ -63,11 +63,16 @@ class _SchedulePageState extends State<SchedulePage> {
   }
 
   void _onDestinationSelected(int index) {
-    if (index == 0) {
-      _goHome();
-    }
-    if (index == 1) {
-      context.go(AppRoutes.schedule);
+    switch (index) {
+      case 0:
+        _goHome();
+        break;
+      case 1:
+        context.go(AppRoutes.schedule);
+        break;
+      case 3:
+        context.go(AppRoutes.account);
+        break;
     }
   }
 

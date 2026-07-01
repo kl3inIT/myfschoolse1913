@@ -96,11 +96,16 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _onDestinationSelected(int index) {
-    if (index == 0) {
-      context.go(AppRoutes.home);
-    }
-    if (index == 1) {
-      context.go(AppRoutes.schedule);
+    switch (index) {
+      case 0:
+        context.go(AppRoutes.home);
+        break;
+      case 1:
+        context.go(AppRoutes.schedule);
+        break;
+      case 3:
+        context.go(AppRoutes.account);
+        break;
     }
   }
 }

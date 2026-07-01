@@ -22,7 +22,7 @@ public class CurrentUserController {
 	public CurrentUserResponse me(@AuthenticationPrincipal Jwt jwt) {
 		var user = userRepository.findById(UUID.fromString(jwt.getSubject()))
 				.filter(AppUser::isEnabled)
-				.orElseThrow(() -> new UnauthorizedException("Session is no longer valid"));
+				.orElseThrow(() -> new UnauthorizedException("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại"));
 
 		return CurrentUserResponse.from(user);
 	}

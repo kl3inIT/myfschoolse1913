@@ -20,8 +20,8 @@ public class ApiExceptionHandler {
 	ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException exception, HttpServletRequest request) {
 		var message = exception.getBindingResult().getFieldErrors().stream()
 				.findFirst()
-				.map((error) -> error.getField() + ": " + error.getDefaultMessage())
-				.orElse("Validation failed");
+				.map((error) -> error.getDefaultMessage() == null ? "Dữ liệu không hợp lệ" : error.getDefaultMessage())
+				.orElse("Dữ liệu không hợp lệ");
 		return build(HttpStatus.BAD_REQUEST, message, request);
 	}
 
@@ -34,9 +34,18 @@ public class ApiExceptionHandler {
 		return ResponseEntity.status(status).body(new ApiError(
 				Instant.now(),
 				status.value(),
-				status.getReasonPhrase(),
+				reasonPhrase(status),
 				message,
 				request.getRequestURI()
 		));
+	}
+
+	private String reasonPhrase(HttpStatus status) {
+		return switch (status) {
+			case BAD_REQUEST -> "Yêu cầu không hợp lệ";
+			case UNAUTHORIZED -> "Không được phép";
+			case TOO_MANY_REQUESTS -> "Quá nhiều yêu cầu";
+			default -> status.getReasonPhrase();
+		};
 	}
 }

@@ -19,6 +19,6 @@ public class CurrentStudentService {
 				.filter((candidate) ->
 						candidate.getUser().isEnabled() && candidate.getUser().getRole() == UserRole.STUDENT
 				)
-				.orElseThrow(() -> new UnauthorizedException("Student session is no longer valid"));
+				.orElseThrow(() -> new UnauthorizedException("Phiên học sinh không hợp lệ. Vui lòng đăng nhập lại"));
 	}
 }

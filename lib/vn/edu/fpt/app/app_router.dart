@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/app/app_dependencies.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/app/app_session_controller.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/ui/features/account/views/account_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/auth/views/forgot_password_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/auth/views/login_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/auth/views/reset_password_page.dart';
@@ -18,6 +19,7 @@ abstract final class AppRoutes {
   static const home = '/home';
   static const semesterGrades = '/semester-grades';
   static const schedule = '/schedule';
+  static const account = '/account';
 }
 
 class PasswordResetOtpRouteData {
@@ -43,7 +45,8 @@ GoRouter createAppRouter({required AppSessionController sessionController}) {
       final isProtectedRoute =
           path == AppRoutes.home ||
           path == AppRoutes.semesterGrades ||
-          path == AppRoutes.schedule;
+          path == AppRoutes.schedule ||
+          path == AppRoutes.account;
 
       return switch (sessionController.status) {
         AppSessionStatus.checking when isProtectedRoute => AppRoutes.login,
@@ -147,6 +150,18 @@ GoRouter createAppRouter({required AppSessionController sessionController}) {
           return NoTransitionPage(
             child: SchedulePage(
               scheduleRepository: services.scheduleRepository,
+              sessionController: services.sessionController,
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.account,
+        pageBuilder: (context, state) {
+          final services = AppDependencies.of(context);
+          return NoTransitionPage(
+            child: AccountPage(
+              userRepository: services.userRepository,
               sessionController: services.sessionController,
             ),
           );

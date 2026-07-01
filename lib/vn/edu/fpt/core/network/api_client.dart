@@ -97,15 +97,32 @@ class ApiClient {
     try {
       final decoded = jsonDecode(responseBody);
       if (decoded case {'message': final String message}) {
-        return message;
+        return _localizeServerMessage(message);
       }
       if (decoded case {'error': final String error}) {
-        return error;
+        return _localizeServerMessage(error);
       }
     } catch (_) {
       // Fall through to a user-safe generic message.
     }
 
     return 'Không thể kết nối tới máy chủ';
+  }
+
+  String _localizeServerMessage(String message) {
+    return switch (message) {
+      'Invalid phone number, password, or refresh token' =>
+        'Thông tin đăng nhập không hợp lệ',
+      'phoneNumber must contain 9 to 15 digits' =>
+        'Số điện thoại phải gồm 9 đến 15 chữ số',
+      'otp must contain 6 digits' => 'Mã xác thực phải gồm 6 chữ số',
+      'newPassword must contain 8 to 72 characters' =>
+        'Mật khẩu mới phải từ 8 đến 72 ký tự',
+      'Validation failed' => 'Dữ liệu không hợp lệ',
+      'Session is no longer valid' ||
+      'Student session is no longer valid' ||
+      'Unauthorized' => 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại',
+      _ => message,
+    };
   }
 }

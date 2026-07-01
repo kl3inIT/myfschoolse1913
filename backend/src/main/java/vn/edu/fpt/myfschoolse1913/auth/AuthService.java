@@ -52,7 +52,7 @@ public class AuthService {
 		var user = userRepository.findByPhoneNumber(phoneNumber)
 				.filter(AppUser::isEnabled)
 				.filter((candidate) -> passwordEncoder.matches(request.password(), candidate.getPasswordHash()))
-				.orElseThrow(InvalidCredentialsException::new);
+				.orElseThrow(() -> new InvalidCredentialsException("Số điện thoại hoặc mật khẩu không đúng"));
 
 		return issueTokens(user);
 	}
@@ -62,7 +62,7 @@ public class AuthService {
 		var now = Instant.now(clock);
 		var existingToken = refreshTokenRepository.findByTokenHash(hashToken(request.refreshToken()))
 				.filter((token) -> token.isActive(now))
-				.orElseThrow(InvalidCredentialsException::new);
+				.orElseThrow(() -> new InvalidCredentialsException("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại"));
 
 		existingToken.revoke(now);
 		return issueTokens(existingToken.getUser());
@@ -111,11 +111,11 @@ public class AuthService {
 		var otp = passwordResetOtpRepository
 				.findFirstByPhoneNumberAndConsumedAtIsNullOrderByCreatedAtDesc(phoneNumber)
 				.filter((candidate) -> candidate.isOtpActive(now, authProperties.passwordResetMaxVerifyAttempts()))
-				.orElseThrow(InvalidCredentialsException::new);
+				.orElseThrow(() -> new InvalidCredentialsException("Mã xác thực không hợp lệ hoặc đã hết hạn"));
 
 		if (!otp.matchesOtpHash(hashToken(request.otp().trim()))) {
 			otp.registerFailedAttempt();
-			throw new InvalidCredentialsException();
+			throw new InvalidCredentialsException("Mã xác thực không hợp lệ hoặc đã hết hạn");
 		}
 
 		var resetToken = generateRefreshToken();
@@ -133,7 +133,9 @@ public class AuthService {
 		var otp = passwordResetOtpRepository
 				.findByResetTokenHashAndConsumedAtIsNull(hashToken(request.resetToken().trim()))
 				.filter((candidate) -> candidate.isResetTokenActive(now))
-				.orElseThrow(InvalidCredentialsException::new);
+				.orElseThrow(() -> new InvalidCredentialsException(
+						"Phiên đổi mật khẩu đã hết hạn. Vui lòng gửi lại mã xác thực"
+				));
 
 		otp.consume(now);
 		otp.getUser().updatePasswordHash(passwordEncoder.encode(request.newPassword()));

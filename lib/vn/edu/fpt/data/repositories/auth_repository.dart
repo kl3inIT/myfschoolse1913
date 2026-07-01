@@ -29,7 +29,9 @@ class AuthRepository {
       await _tokenStorage.saveSession(session);
       return Success(session);
     } on ApiException catch (exception) {
-      return Failure(AppFailure(exception.message, cause: exception));
+      return Failure(
+        AppFailure(_loginErrorMessage(exception), cause: exception),
+      );
     } catch (exception) {
       return Failure(
         AppFailure('Không thể đăng nhập lúc này', cause: exception),
@@ -49,7 +51,9 @@ class AuthRepository {
       await _tokenStorage.saveSession(session);
       return Success(session);
     } on ApiException catch (exception) {
-      return Failure(AppFailure(exception.message, cause: exception));
+      return Failure(
+        AppFailure(_sessionErrorMessage(exception), cause: exception),
+      );
     } catch (exception) {
       return Failure(
         AppFailure('Không thể làm mới phiên đăng nhập', cause: exception),
@@ -123,5 +127,19 @@ class AuthRepository {
         AppFailure('Không thể đổi mật khẩu lúc này', cause: exception),
       );
     }
+  }
+
+  String _loginErrorMessage(ApiException exception) {
+    if (exception.statusCode == 401) {
+      return 'Số điện thoại hoặc mật khẩu không đúng';
+    }
+    return exception.message;
+  }
+
+  String _sessionErrorMessage(ApiException exception) {
+    if (exception.statusCode == 401) {
+      return 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại';
+    }
+    return exception.message;
   }
 }
