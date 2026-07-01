@@ -62,7 +62,7 @@ class AuthRepository {
     if (refreshToken != null) {
       try {
         await _authApiService.logout(refreshToken);
-      } on ApiException {
+      } catch (_) {
         // Local logout should still clear tokens when the server is unreachable.
       }
     }

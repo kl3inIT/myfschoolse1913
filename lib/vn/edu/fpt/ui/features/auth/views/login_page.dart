@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/app/app_dependencies.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/app/app_router.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/core/theme/app_colors.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/auth_repository.dart';
@@ -40,6 +41,10 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     if (result == LoginSubmitResult.success) {
+      final session = _viewModel.state.session;
+      if (session != null) {
+        AppDependencies.of(context).sessionController.setAuthenticated(session);
+      }
       context.go(AppRoutes.home);
     }
   }

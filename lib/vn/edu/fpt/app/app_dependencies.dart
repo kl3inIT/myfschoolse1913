@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:myfschoolse1913/vn/edu/fpt/app/app_config.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/app/app_session_controller.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/core/network/api_client.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/auth_repository.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/services/auth_api_service.dart';
@@ -13,6 +14,7 @@ class AppServices {
     required this.authApiService,
     required this.tokenStorage,
     required this.authRepository,
+    required this.sessionController,
   });
 
   factory AppServices.production(AppConfig config) {
@@ -24,6 +26,9 @@ class AppServices {
       authApiService: authApiService,
       tokenStorage: tokenStorage,
     );
+    final sessionController = AppSessionController(
+      authRepository: authRepository,
+    );
 
     return AppServices._(
       httpClient: httpClient,
@@ -31,6 +36,7 @@ class AppServices {
       authApiService: authApiService,
       tokenStorage: tokenStorage,
       authRepository: authRepository,
+      sessionController: sessionController,
     );
   }
 
@@ -39,8 +45,10 @@ class AppServices {
   final AuthApiService authApiService;
   final TokenStorage tokenStorage;
   final AuthRepository authRepository;
+  final AppSessionController sessionController;
 
   void dispose() {
+    sessionController.dispose();
     httpClient.close();
   }
 }

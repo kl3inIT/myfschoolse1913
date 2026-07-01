@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/app/app_config.dart';
@@ -6,7 +8,9 @@ import 'package:myfschoolse1913/vn/edu/fpt/app/app_router.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/core/theme/app_theme.dart';
 
 class MyFSchoolApp extends StatefulWidget {
-  const MyFSchoolApp({super.key});
+  const MyFSchoolApp({super.key, this.restoreSessionOnStart = true});
+
+  final bool restoreSessionOnStart;
 
   @override
   State<MyFSchoolApp> createState() => _MyFSchoolAppState();
@@ -21,7 +25,10 @@ class _MyFSchoolAppState extends State<MyFSchoolApp> {
     super.initState();
     final config = AppConfig.fromEnvironment();
     _services = AppServices.production(config);
-    _router = createAppRouter();
+    _router = createAppRouter(sessionController: _services.sessionController);
+    if (widget.restoreSessionOnStart) {
+      unawaited(_services.sessionController.initialize());
+    }
   }
 
   @override

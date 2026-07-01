@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/app/app_dependencies.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/app/app_session_controller.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/auth/views/forgot_password_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/auth/views/login_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/auth/views/reset_password_page.dart';
@@ -28,9 +29,23 @@ class PasswordResetConfirmRouteData {
   final String resetToken;
 }
 
-GoRouter createAppRouter() {
+GoRouter createAppRouter({required AppSessionController sessionController}) {
   return GoRouter(
     initialLocation: AppRoutes.login,
+    refreshListenable: sessionController,
+    redirect: (context, state) {
+      final path = state.uri.path;
+      final isLoginRoute = path == AppRoutes.login;
+      final isHomeRoute = path == AppRoutes.home;
+
+      return switch (sessionController.status) {
+        AppSessionStatus.checking when isHomeRoute => AppRoutes.login,
+        AppSessionStatus.checking => null,
+        AppSessionStatus.unauthenticated when isHomeRoute => AppRoutes.login,
+        AppSessionStatus.authenticated when isLoginRoute => AppRoutes.home,
+        _ => null,
+      };
+    },
     routes: [
       GoRoute(
         path: AppRoutes.login,

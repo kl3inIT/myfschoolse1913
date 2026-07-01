@@ -3,7 +3,7 @@ import 'package:myfschoolse1913/vn/edu/fpt/app/my_fschool_app.dart';
 
 void main() {
   testWidgets('shows login screen by default', (WidgetTester tester) async {
-    await tester.pumpWidget(const MyFSchoolApp());
+    await tester.pumpWidget(const MyFSchoolApp(restoreSessionOnStart: false));
 
     await tester.pump();
 
@@ -16,7 +16,7 @@ void main() {
   testWidgets('opens forgot password screen from login', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const MyFSchoolApp());
+    await tester.pumpWidget(const MyFSchoolApp(restoreSessionOnStart: false));
     await tester.pump();
 
     await tester.tap(find.text('Quên mật khẩu?'));

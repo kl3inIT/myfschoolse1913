@@ -58,8 +58,12 @@ class LoginViewModel extends ChangeNotifier {
     );
 
     switch (result) {
-      case Success():
-        _state = _state.copyWith(isSubmitting: false, clearErrorMessage: true);
+      case Success(value: final session):
+        _state = _state.copyWith(
+          isSubmitting: false,
+          session: session,
+          clearErrorMessage: true,
+        );
         notifyListeners();
         return LoginSubmitResult.success;
       case Failure(failure: final failure):
