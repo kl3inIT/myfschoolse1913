@@ -6,6 +6,7 @@ import 'package:myfschoolse1913/vn/edu/fpt/core/theme/app_colors.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/dashboard_repository.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/domain/models/student_dashboard.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/domain/models/user_role.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/ui/core/widgets/student_bottom_navigation.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/home/view_models/home_view_model.dart';
 
 class HomePage extends StatefulWidget {
@@ -79,7 +80,10 @@ class _HomePageState extends State<HomePage> {
                           onRetry: _loadDashboard,
                         ),
                       ),
-                      const _DashboardBottomNav(),
+                      StudentBottomNavigation(
+                        currentIndex: 0,
+                        onDestinationSelected: _onDestinationSelected,
+                      ),
                     ],
                   );
                 },
@@ -89,6 +93,12 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+  }
+
+  void _onDestinationSelected(int index) {
+    if (index == 0) {
+      context.go(AppRoutes.home);
+    }
   }
 }
 
@@ -311,21 +321,32 @@ class _FeatureGrid extends StatelessWidget {
       ),
       itemBuilder: (context, index) {
         final shortcut = shortcuts[index];
-        return _FeatureCard(shortcut: shortcut);
+        return _FeatureCard(
+          shortcut: shortcut,
+          onTap: () => _openShortcut(context, shortcut.code),
+        );
       },
     );
+  }
+
+  void _openShortcut(BuildContext context, String code) {
+    switch (code) {
+      case 'SEMESTER_GRADES':
+        context.go(AppRoutes.semesterGrades);
+    }
   }
 }
 
 class _FeatureCard extends StatelessWidget {
-  const _FeatureCard({required this.shortcut});
+  const _FeatureCard({required this.shortcut, required this.onTap});
 
   final DashboardShortcut shortcut;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {},
+      onTap: onTap,
       borderRadius: BorderRadius.circular(10),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -477,90 +498,6 @@ class _DashboardError extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             FilledButton(onPressed: onRetry, child: const Text('Thử lại')),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _DashboardBottomNav extends StatelessWidget {
-  const _DashboardBottomNav();
-
-  static const _items = [
-    _BottomNavItem(Icons.home_outlined, Icons.home, 'Trang chủ', true),
-    _BottomNavItem(
-      Icons.calendar_month_outlined,
-      Icons.calendar_month,
-      'Lịch',
-      false,
-    ),
-    _BottomNavItem(
-      Icons.chat_bubble_outline,
-      Icons.chat_bubble,
-      'Tin nhắn',
-      false,
-    ),
-    _BottomNavItem(Icons.person_outline, Icons.person, 'Tài khoản', false),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 84,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: FptColors.border)),
-      ),
-      child: Row(
-        children: [
-          for (final item in _items) Expanded(child: _BottomNavButton(item)),
-        ],
-      ),
-    );
-  }
-}
-
-class _BottomNavItem {
-  const _BottomNavItem(this.icon, this.selectedIcon, this.label, this.selected);
-
-  final IconData icon;
-  final IconData selectedIcon;
-  final String label;
-  final bool selected;
-}
-
-class _BottomNavButton extends StatelessWidget {
-  const _BottomNavButton(this.item);
-
-  final _BottomNavItem item;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = item.selected ? FptColors.orange : FptColors.textSecondary;
-
-    return InkWell(
-      onTap: () {},
-      child: Padding(
-        padding: const EdgeInsets.only(top: 10),
-        child: Column(
-          children: [
-            Icon(
-              item.selected ? item.selectedIcon : item.icon,
-              color: color,
-              size: 22,
-            ),
-            const SizedBox(height: 6),
-            Text(
-              item.label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: color,
-                fontWeight: item.selected ? FontWeight.w600 : FontWeight.w500,
-                height: 1.2,
-              ),
-            ),
           ],
         ),
       ),

@@ -6,6 +6,7 @@ import 'package:myfschoolse1913/vn/edu/fpt/ui/features/auth/views/forgot_passwor
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/auth/views/login_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/auth/views/reset_password_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/auth/views/verify_otp_page.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/ui/features/grades/views/semester_grades_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/home/views/home_page.dart';
 
 abstract final class AppRoutes {
@@ -14,6 +15,7 @@ abstract final class AppRoutes {
   static const verifyOtp = '/forgot-password/verify';
   static const resetPassword = '/forgot-password/reset';
   static const home = '/home';
+  static const semesterGrades = '/semester-grades';
 }
 
 class PasswordResetOtpRouteData {
@@ -36,12 +38,14 @@ GoRouter createAppRouter({required AppSessionController sessionController}) {
     redirect: (context, state) {
       final path = state.uri.path;
       final isLoginRoute = path == AppRoutes.login;
-      final isHomeRoute = path == AppRoutes.home;
+      final isProtectedRoute =
+          path == AppRoutes.home || path == AppRoutes.semesterGrades;
 
       return switch (sessionController.status) {
-        AppSessionStatus.checking when isHomeRoute => AppRoutes.login,
+        AppSessionStatus.checking when isProtectedRoute => AppRoutes.login,
         AppSessionStatus.checking => null,
-        AppSessionStatus.unauthenticated when isHomeRoute => AppRoutes.login,
+        AppSessionStatus.unauthenticated when isProtectedRoute =>
+          AppRoutes.login,
         AppSessionStatus.authenticated when isLoginRoute => AppRoutes.home,
         _ => null,
       };
@@ -115,6 +119,18 @@ GoRouter createAppRouter({required AppSessionController sessionController}) {
           return NoTransitionPage(
             child: HomePage(
               dashboardRepository: services.dashboardRepository,
+              sessionController: services.sessionController,
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.semesterGrades,
+        pageBuilder: (context, state) {
+          final services = AppDependencies.of(context);
+          return NoTransitionPage(
+            child: SemesterGradesPage(
+              gradesRepository: services.gradesRepository,
               sessionController: services.sessionController,
             ),
           );
