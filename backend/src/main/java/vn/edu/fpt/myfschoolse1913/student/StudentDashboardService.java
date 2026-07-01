@@ -4,23 +4,21 @@ import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import vn.edu.fpt.myfschoolse1913.shared.UnauthorizedException;
-import vn.edu.fpt.myfschoolse1913.user.UserRole;
 
 @Service
 public class StudentDashboardService {
 
-	private final StudentRepository studentRepository;
+	private final CurrentStudentService currentStudentService;
+	private final StudentScheduleService scheduleService;
 
-	public StudentDashboardService(StudentRepository studentRepository) {
-		this.studentRepository = studentRepository;
+	public StudentDashboardService(CurrentStudentService currentStudentService, StudentScheduleService scheduleService) {
+		this.currentStudentService = currentStudentService;
+		this.scheduleService = scheduleService;
 	}
 
 	@Transactional(readOnly = true)
 	public StudentDashboardResponse getDashboard(UUID userId) {
-		var student = studentRepository.findByUserIdWithClass(userId)
-				.filter((candidate) -> candidate.getUser().isEnabled() && candidate.getUser().getRole() == UserRole.STUDENT)
-				.orElseThrow(() -> new UnauthorizedException("Student session is no longer valid"));
+		var student = currentStudentService.requireCurrentStudent(userId);
 		var user = student.getUser();
 		var schoolClass = student.getSchoolClass();
 		var academicYear = schoolClass.getAcademicYear();
@@ -42,10 +40,7 @@ public class StudentDashboardService {
 						new StudentDashboardResponse.FeatureShortcut("APPLICATIONS", "Đơn từ"),
 						new StudentDashboardResponse.FeatureShortcut("CLUBS", "CLB")
 				),
-				List.of(
-						new StudentDashboardResponse.TodayScheduleItem("Toán học", "Tiết 1 - Phòng A203", "07:30"),
-						new StudentDashboardResponse.TodayScheduleItem("Ăn trưa", "11:15 - Nhà ăn", "11:15")
-				)
+				scheduleService.getTodayScheduleItems(student)
 		);
 	}
 

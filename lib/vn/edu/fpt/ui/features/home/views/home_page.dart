@@ -99,6 +99,9 @@ class _HomePageState extends State<HomePage> {
     if (index == 0) {
       context.go(AppRoutes.home);
     }
+    if (index == 1) {
+      context.go(AppRoutes.schedule);
+    }
   }
 }
 
@@ -333,6 +336,8 @@ class _FeatureGrid extends StatelessWidget {
     switch (code) {
       case 'SEMESTER_GRADES':
         context.go(AppRoutes.semesterGrades);
+      case 'SCHEDULE':
+        context.go(AppRoutes.schedule);
     }
   }
 }

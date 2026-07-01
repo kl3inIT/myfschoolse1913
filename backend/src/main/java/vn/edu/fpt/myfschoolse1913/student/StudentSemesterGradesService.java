@@ -4,33 +4,27 @@ import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import vn.edu.fpt.myfschoolse1913.shared.UnauthorizedException;
-import vn.edu.fpt.myfschoolse1913.user.UserRole;
 
 @Service
 public class StudentSemesterGradesService {
 
-	private final StudentRepository studentRepository;
+	private final CurrentStudentService currentStudentService;
 	private final SemesterRepository semesterRepository;
 	private final SemesterSubjectGradeRepository gradeRepository;
 
 	public StudentSemesterGradesService(
-			StudentRepository studentRepository,
+			CurrentStudentService currentStudentService,
 			SemesterRepository semesterRepository,
 			SemesterSubjectGradeRepository gradeRepository
 	) {
-		this.studentRepository = studentRepository;
+		this.currentStudentService = currentStudentService;
 		this.semesterRepository = semesterRepository;
 		this.gradeRepository = gradeRepository;
 	}
 
 	@Transactional(readOnly = true)
 	public StudentSemesterGradesResponse getSemesterGrades(UUID userId) {
-		var student = studentRepository.findByUserIdWithClass(userId)
-				.filter((candidate) ->
-						candidate.getUser().isEnabled() && candidate.getUser().getRole() == UserRole.STUDENT
-				)
-				.orElseThrow(() -> new UnauthorizedException("Student session is no longer valid"));
+		var student = currentStudentService.requireCurrentStudent(userId);
 		var semester = semesterRepository
 				.findFirstByAcademicYearAndCurrentSemesterTrue(student.getSchoolClass().getAcademicYear())
 				.orElseThrow(() -> new IllegalStateException("Current semester was not configured"));

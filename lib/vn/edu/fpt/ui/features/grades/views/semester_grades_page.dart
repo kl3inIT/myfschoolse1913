@@ -63,6 +63,9 @@ class _SemesterGradesPageState extends State<SemesterGradesPage> {
     if (index == 0) {
       _goHome();
     }
+    if (index == 1) {
+      context.go(AppRoutes.schedule);
+    }
   }
 
   @override

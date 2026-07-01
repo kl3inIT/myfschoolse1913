@@ -14,9 +14,10 @@ class ApiClient {
   Future<Map<String, Object?>> getJsonObject(
     String path, {
     String? bearerToken,
+    Map<String, String>? queryParameters,
   }) async {
     final response = await _client.get(
-      _resolve(path),
+      _resolve(path, queryParameters: queryParameters),
       headers: _headers(bearerToken),
     );
 
@@ -65,10 +66,11 @@ class ApiClient {
     );
   }
 
-  Uri _resolve(String path) {
+  Uri _resolve(String path, {Map<String, String>? queryParameters}) {
     final normalizedPath = path.startsWith('/') ? path.substring(1) : path;
     return _baseUri.replace(
       pathSegments: [..._baseUri.pathSegments, ...normalizedPath.split('/')],
+      queryParameters: queryParameters,
     );
   }
 

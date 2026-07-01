@@ -17,9 +17,16 @@ class AuthenticatedApiClient {
   final AuthApiService _authApiService;
   final TokenStorage _tokenStorage;
 
-  Future<Map<String, Object?>> getJsonObject(String path) {
+  Future<Map<String, Object?>> getJsonObject(
+    String path, {
+    Map<String, String>? queryParameters,
+  }) {
     return _sendWithAuth((accessToken) {
-      return _apiClient.getJsonObject(path, bearerToken: accessToken);
+      return _apiClient.getJsonObject(
+        path,
+        bearerToken: accessToken,
+        queryParameters: queryParameters,
+      );
     });
   }
 

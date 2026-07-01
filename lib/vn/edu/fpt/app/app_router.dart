@@ -8,6 +8,7 @@ import 'package:myfschoolse1913/vn/edu/fpt/ui/features/auth/views/reset_password
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/auth/views/verify_otp_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/grades/views/semester_grades_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/home/views/home_page.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/ui/features/schedule/views/schedule_page.dart';
 
 abstract final class AppRoutes {
   static const login = '/login';
@@ -16,6 +17,7 @@ abstract final class AppRoutes {
   static const resetPassword = '/forgot-password/reset';
   static const home = '/home';
   static const semesterGrades = '/semester-grades';
+  static const schedule = '/schedule';
 }
 
 class PasswordResetOtpRouteData {
@@ -39,7 +41,9 @@ GoRouter createAppRouter({required AppSessionController sessionController}) {
       final path = state.uri.path;
       final isLoginRoute = path == AppRoutes.login;
       final isProtectedRoute =
-          path == AppRoutes.home || path == AppRoutes.semesterGrades;
+          path == AppRoutes.home ||
+          path == AppRoutes.semesterGrades ||
+          path == AppRoutes.schedule;
 
       return switch (sessionController.status) {
         AppSessionStatus.checking when isProtectedRoute => AppRoutes.login,
@@ -131,6 +135,18 @@ GoRouter createAppRouter({required AppSessionController sessionController}) {
           return NoTransitionPage(
             child: SemesterGradesPage(
               gradesRepository: services.gradesRepository,
+              sessionController: services.sessionController,
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.schedule,
+        pageBuilder: (context, state) {
+          final services = AppDependencies.of(context);
+          return NoTransitionPage(
+            child: SchedulePage(
+              scheduleRepository: services.scheduleRepository,
               sessionController: services.sessionController,
             ),
           );
