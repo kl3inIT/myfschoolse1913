@@ -458,17 +458,6 @@ class _ScheduleDaySection extends StatelessWidget {
             height: 1.2,
           ),
         ),
-        const SizedBox(height: 6),
-        Text(
-          _daySummary(day),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: FptColors.textSecondary,
-            fontWeight: FontWeight.w600,
-            height: 1.2,
-          ),
-        ),
         const SizedBox(height: 20),
         if (day.items.isEmpty)
           _EmptySchedule(message: emptyMessage)
@@ -481,34 +470,6 @@ class _ScheduleDaySection extends StatelessWidget {
           ],
       ],
     );
-  }
-
-  String _daySummary(ScheduleDay day) {
-    final lessonCount = day.items
-        .where((item) => item.type == ScheduleItemType.subject)
-        .length;
-    final mealCount = day.items
-        .where((item) => item.type == ScheduleItemType.meal)
-        .length;
-    final activityCount = day.items
-        .where((item) => item.type == ScheduleItemType.activity)
-        .length;
-    final parts = <String>[];
-
-    if (lessonCount > 0) {
-      parts.add('$lessonCount tiết học');
-    }
-    if (mealCount > 0) {
-      parts.add('ăn trưa/nghỉ trưa');
-    }
-    if (activityCount > 0) {
-      parts.add('$activityCount hoạt động');
-    }
-
-    if (parts.isEmpty) {
-      return 'Không có lịch học';
-    }
-    return parts.join(' · ');
   }
 
   List<ScheduleItem> _itemsForSession(ScheduleSession session) {
