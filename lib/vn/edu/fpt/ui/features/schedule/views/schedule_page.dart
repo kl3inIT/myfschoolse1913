@@ -603,10 +603,6 @@ class _ScheduleItemTile extends StatelessWidget {
                     height: 1.2,
                   ),
                 ),
-                if (item.type == ScheduleItemType.meal) ...[
-                  const SizedBox(height: 8),
-                  const _MealChip(),
-                ],
               ],
             ),
           ),
@@ -630,31 +626,6 @@ class _ScheduleItemTile extends StatelessWidget {
 
   String get _startTime {
     return item.timeRange.split(' - ').first;
-  }
-}
-
-class _MealChip extends StatelessWidget {
-  const _MealChip();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 22,
-      alignment: Alignment.center,
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFFD1FAE5),
-        borderRadius: BorderRadius.circular(11),
-      ),
-      child: Text(
-        'Giữa ngày',
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: const Color(0xFF047857),
-          fontWeight: FontWeight.w800,
-          height: 1.0,
-        ),
-      ),
-    );
   }
 }
 
