@@ -46,6 +46,7 @@ class ScheduleItem {
   const ScheduleItem({
     required this.lessonNumber,
     required this.type,
+    required this.session,
     required this.title,
     required this.lessonLabel,
     required this.timeRange,
@@ -55,6 +56,7 @@ class ScheduleItem {
 
   final int lessonNumber;
   final ScheduleItemType type;
+  final ScheduleSession session;
   final String title;
   final String lessonLabel;
   final String timeRange;
@@ -72,6 +74,25 @@ enum ScheduleItemType {
       'MEAL' => ScheduleItemType.meal,
       'ACTIVITY' => ScheduleItemType.activity,
       _ => ScheduleItemType.subject,
+    };
+  }
+}
+
+enum ScheduleSession {
+  morning('MORNING', 'Buổi sáng'),
+  noon('NOON', 'Nghỉ trưa'),
+  afternoon('AFTERNOON', 'Buổi chiều');
+
+  const ScheduleSession(this.wireValue, this.label);
+
+  final String wireValue;
+  final String label;
+
+  static ScheduleSession fromWireValue(String value) {
+    return switch (value) {
+      'NOON' => ScheduleSession.noon,
+      'AFTERNOON' => ScheduleSession.afternoon,
+      _ => ScheduleSession.morning,
     };
   }
 }

@@ -66,4 +66,9 @@ public class Student {
 	public String getStatus() {
 		return status;
 	}
+
+	public void updateSchoolClass(SchoolClass schoolClass) {
+		this.schoolClass = schoolClass;
+		this.updatedAt = Instant.now();
+	}
 }

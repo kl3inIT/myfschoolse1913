@@ -96,6 +96,7 @@ public class StudentScheduleService {
 				.map((slot) -> new StudentScheduleResponse.ScheduleItem(
 						slot.getLessonNumber(),
 						slot.getSlotType().name(),
+						sessionFor(slot).name(),
 						slot.getTitle(),
 						"Tiết " + slot.getLessonNumber(),
 						formatTimeRange(slot.getStartsAt(), slot.getEndsAt()),
@@ -128,10 +129,26 @@ public class StudentScheduleService {
 	}
 
 	private String dashboardSubtitle(ClassTimetableSlot slot) {
+		if (slot.getSlotType() == ClassTimetableSlotType.MEAL) {
+			if (slot.getRoomName() == null || slot.getRoomName().isBlank()) {
+				return "Ăn trưa / nghỉ trưa";
+			}
+			return "Ăn trưa / nghỉ trưa - " + slot.getRoomName();
+		}
 		if (slot.getRoomName() == null || slot.getRoomName().isBlank()) {
 			return "Tiết " + slot.getLessonNumber();
 		}
 		return "Tiết " + slot.getLessonNumber() + " - " + slot.getRoomName();
+	}
+
+	private ScheduleSession sessionFor(ClassTimetableSlot slot) {
+		if (slot.getSlotType() == ClassTimetableSlotType.MEAL) {
+			return ScheduleSession.NOON;
+		}
+		if (slot.getStartsAt().isBefore(LocalTime.of(12, 0))) {
+			return ScheduleSession.MORNING;
+		}
+		return ScheduleSession.AFTERNOON;
 	}
 
 	private String formatTimeRange(LocalTime startsAt, LocalTime endsAt) {

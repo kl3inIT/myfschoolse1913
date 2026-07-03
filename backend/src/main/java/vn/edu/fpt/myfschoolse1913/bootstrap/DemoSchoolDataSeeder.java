@@ -75,8 +75,8 @@ public class DemoSchoolDataSeeder {
 							true
 					)));
 
-			var schoolClass = schoolClassRepository.findByAcademicYearAndName(academicYear, "Lớp 5A1")
-					.orElseGet(() -> schoolClassRepository.save(new SchoolClass(academicYear, "Lớp 5A1")));
+			var schoolClass = schoolClassRepository.findByAcademicYearAndName(academicYear, "Lớp 10A1")
+					.orElseGet(() -> schoolClassRepository.save(new SchoolClass(academicYear, "Lớp 10A1")));
 
 			var student = studentRepository.findByUserId(user.getId())
 					.orElseGet(() -> studentRepository.save(new Student(
@@ -85,6 +85,10 @@ public class DemoSchoolDataSeeder {
 							"FS1913-0001",
 							"Đang học"
 					)));
+			if (!student.getSchoolClass().getId().equals(schoolClass.getId())) {
+				student.updateSchoolClass(schoolClass);
+				studentRepository.save(student);
+			}
 
 			var semester = semesterRepository.findByAcademicYearAndName(academicYear, "Học kỳ 1")
 					.orElseGet(() -> semesterRepository.save(new Semester(
@@ -96,38 +100,72 @@ public class DemoSchoolDataSeeder {
 							true
 					)));
 
-			seedGrade(gradeRepository, student, semester, subject(subjectRepository, "MATH", "Toán học", 10), "8.5", "Miệng 8 - 15 phút 9 - Giữa kỳ 8");
-			seedGrade(gradeRepository, student, semester, subject(subjectRepository, "VIETNAMESE", "Tiếng Việt", 20), "8.1", "Miệng 8 - 15 phút 8 - Giữa kỳ 8");
-			seedGrade(gradeRepository, student, semester, subject(subjectRepository, "ENGLISH", "Tiếng Anh", 30), "8.7", "Miệng 9 - 15 phút 9 - Giữa kỳ 8");
-			seedGrade(gradeRepository, student, semester, subject(subjectRepository, "SCIENCE", "Khoa học", 40), "8.3", "Miệng 8 - 15 phút 8 - Giữa kỳ 9");
+			gradeRepository.deleteByStudentAndSemester(student, semester);
+			timetableSlotRepository.deleteBySchoolClassAndSemester(schoolClass, semester);
 
 			var math = subject(subjectRepository, "MATH", "Toán học", 10);
-			var vietnamese = subject(subjectRepository, "VIETNAMESE", "Tiếng Việt", 20);
+			var literature = subject(subjectRepository, "LITERATURE", "Ngữ văn", 20);
 			var english = subject(subjectRepository, "ENGLISH", "Tiếng Anh", 30);
-			var science = subject(subjectRepository, "SCIENCE", "Khoa học", 40);
-			var music = subject(subjectRepository, "MUSIC", "Âm nhạc", 50);
+			var physics = subject(subjectRepository, "PHYSICS", "Vật lý", 40);
+			var chemistry = subject(subjectRepository, "CHEMISTRY", "Hóa học", 50);
+			var informatics = subject(subjectRepository, "INFORMATICS", "Tin học", 60);
+			var civicEducation = subject(subjectRepository, "CIVIC_EDUCATION", "GDKT&PL", 70);
+			var physicalEducation = subject(subjectRepository, "PHYSICAL_EDUCATION", "Giáo dục thể chất", 80);
+			var defenseEducation = subject(subjectRepository, "DEFENSE_EDUCATION", "GDQP-AN", 90);
+			var pdp = subject(subjectRepository, "PDP", "PDP", 100);
+			var careerExperience = subject(subjectRepository, "CAREER_EXPERIENCE", "HĐTNHN", 110);
+			var coding = subject(subjectRepository, "CODING", "Coding / Robotics", 120);
 
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 1, 1, math, "Phòng A203", "Cô Lan", "07:30", "08:05");
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 1, 2, english, "Phòng B102", "Cô Hương", "08:25", "09:00");
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 1, 3, music, "Phòng năng khiếu", "Thầy Nam", "09:25", "10:00");
-			seedMealSlot(timetableSlotRepository, schoolClass, semester, 1, 4, "Ăn trưa", "Nhà ăn", "11:15", "12:00");
+			seedGrade(gradeRepository, student, semester, math, "8.5", "TX 8.0 - GK 8.5 - CK 8.7");
+			seedGrade(gradeRepository, student, semester, literature, "8.1", "TX 8.0 - GK 8.0 - CK 8.3");
+			seedGrade(gradeRepository, student, semester, english, "8.7", "TX 9.0 - GK 8.5 - CK 8.7");
+			seedGrade(gradeRepository, student, semester, physics, "8.3", "TX 8.0 - GK 8.2 - CK 8.5");
+			seedGrade(gradeRepository, student, semester, informatics, "8.6", "TX 8.5 - GK 8.7 - CK 8.6");
 
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 2, 1, vietnamese, "Phòng A203", "Cô Mai", "07:30", "08:05");
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 2, 2, science, "Phòng Lab 1", "Thầy Quân", "08:25", "09:00");
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 2, 3, math, "Phòng A203", "Cô Lan", "09:25", "10:00");
-			seedMealSlot(timetableSlotRepository, schoolClass, semester, 2, 4, "Ăn trưa", "Nhà ăn", "11:15", "12:00");
+			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 1, 1, math, "Phòng 10A1", "Cô Lan", "07:45", "08:30");
+			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 1, 2, literature, "Phòng 10A1", "Cô Mai", "08:40", "09:25");
+			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 1, 3, english, "Phòng 10A1", "Cô Hương", "09:40", "10:25");
+			seedActivitySlot(timetableSlotRepository, schoolClass, semester, 1, 4, pdp, "Phòng PDP", "Thầy Nam", "10:35", "11:20");
+			seedMealSlot(timetableSlotRepository, schoolClass, semester, 1, 5, "Ăn trưa / nghỉ trưa", "Nhà ăn", "11:20", "13:30");
+			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 1, 6, physics, "Phòng Lab 1", "Thầy Quân", "13:30", "14:15");
+			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 1, 7, informatics, "Phòng Lab CNTT", "Cô Trang", "14:25", "15:10");
+			seedActivitySlot(timetableSlotRepository, schoolClass, semester, 1, 8, careerExperience, "Phòng 10A1", "Cô Mai", "15:20", "16:00");
 
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 3, 1, math, "Phòng A203", "Cô Lan", "07:30", "08:05");
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 3, 2, english, "Phòng B102", "Cô Hương", "08:25", "09:00");
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 3, 3, vietnamese, "Phòng A203", "Cô Mai", "09:25", "10:00");
-			seedMealSlot(timetableSlotRepository, schoolClass, semester, 3, 4, "Ăn trưa", "Nhà ăn", "11:15", "12:00");
+			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 2, 1, chemistry, "Phòng Lab 2", "Cô Thảo", "07:45", "08:30");
+			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 2, 2, english, "Phòng 10A1", "Cô Hương", "08:40", "09:25");
+			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 2, 3, math, "Phòng 10A1", "Cô Lan", "09:40", "10:25");
+			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 2, 4, civicEducation, "Phòng 10A1", "Thầy Bình", "10:35", "11:20");
+			seedMealSlot(timetableSlotRepository, schoolClass, semester, 2, 5, "Ăn trưa / nghỉ trưa", "Nhà ăn", "11:20", "13:30");
+			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 2, 6, coding, "Phòng STEM", "Thầy Long", "13:30", "14:15");
+			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 2, 7, physicalEducation, "Nhà đa năng", "Thầy Nam", "14:25", "15:10");
+			seedActivitySlot(timetableSlotRepository, schoolClass, semester, 2, 8, careerExperience, "Phòng dự án", "Cô Trang", "15:20", "16:00");
 
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 4, 1, science, "Phòng Lab 1", "Thầy Quân", "07:30", "08:05");
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 4, 2, math, "Phòng A203", "Cô Lan", "08:25", "09:00");
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 4, 3, english, "Phòng B102", "Cô Hương", "09:25", "10:00");
+			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 3, 1, literature, "Phòng 10A1", "Cô Mai", "07:45", "08:30");
+			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 3, 2, math, "Phòng 10A1", "Cô Lan", "08:40", "09:25");
+			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 3, 3, physics, "Phòng Lab 1", "Thầy Quân", "09:40", "10:25");
+			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 3, 4, english, "Phòng 10A1", "Cô Hương", "10:35", "11:20");
+			seedMealSlot(timetableSlotRepository, schoolClass, semester, 3, 5, "Ăn trưa / nghỉ trưa", "Nhà ăn", "11:20", "13:30");
+			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 3, 6, informatics, "Phòng Lab CNTT", "Cô Trang", "13:30", "14:15");
+			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 3, 7, defenseEducation, "Sân trường", "Thầy Kiên", "14:25", "15:10");
+			seedActivitySlot(timetableSlotRepository, schoolClass, semester, 3, 8, pdp, "Phòng PDP", "Thầy Nam", "15:20", "16:00");
 
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 5, 1, vietnamese, "Phòng A203", "Cô Mai", "07:30", "08:05");
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 5, 2, music, "Phòng năng khiếu", "Thầy Nam", "08:25", "09:00");
+			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 4, 1, math, "Phòng 10A1", "Cô Lan", "07:45", "08:30");
+			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 4, 2, chemistry, "Phòng Lab 2", "Cô Thảo", "08:40", "09:25");
+			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 4, 3, literature, "Phòng 10A1", "Cô Mai", "09:40", "10:25");
+			seedActivitySlot(timetableSlotRepository, schoolClass, semester, 4, 4, careerExperience, "Phòng 10A1", "Cô Mai", "10:35", "11:20");
+			seedMealSlot(timetableSlotRepository, schoolClass, semester, 4, 5, "Ăn trưa / nghỉ trưa", "Nhà ăn", "11:20", "13:30");
+			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 4, 6, english, "Phòng 10A1", "Cô Hương", "13:30", "14:15");
+			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 4, 7, coding, "Phòng STEM", "Thầy Long", "14:25", "15:10");
+			seedActivitySlot(timetableSlotRepository, schoolClass, semester, 4, 8, pdp, "Phòng PDP", "Thầy Nam", "15:20", "16:00");
+
+			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 5, 1, english, "Phòng 10A1", "Cô Hương", "07:45", "08:30");
+			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 5, 2, math, "Phòng 10A1", "Cô Lan", "08:40", "09:25");
+			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 5, 3, informatics, "Phòng Lab CNTT", "Cô Trang", "09:40", "10:25");
+			seedActivitySlot(timetableSlotRepository, schoolClass, semester, 5, 4, pdp, "Phòng PDP", "Thầy Nam", "10:35", "11:20");
+			seedMealSlot(timetableSlotRepository, schoolClass, semester, 5, 5, "Ăn trưa / nghỉ trưa", "Nhà ăn", "11:20", "13:30");
+			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 5, 6, chemistry, "Phòng Lab 2", "Cô Thảo", "13:30", "14:15");
+			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 5, 7, physicalEducation, "Nhà đa năng", "Thầy Nam", "14:25", "15:10");
+			seedActivitySlot(timetableSlotRepository, schoolClass, semester, 5, 8, careerExperience, "Hội trường", "Cô Trang", "15:20", "16:00");
 
 			seedEvent(
 					eventRepository,
@@ -164,7 +202,7 @@ public class DemoSchoolDataSeeder {
 					academicYear,
 					null,
 					"Lễ tổng kết học kỳ",
-					"Tổng kết hoạt động học kỳ, khen thưởng học sinh tiêu biểu và phổ biến kế hoạch mới.",
+					"Tổng kết hoạt động học kỳ và phổ biến kế hoạch học tập học kỳ mới.",
 					"Hội trường",
 					atSchoolTime(2026, 7, 25, 8, 0),
 					atSchoolTime(2026, 7, 25, 9, 30)
@@ -307,6 +345,34 @@ public class DemoSchoolDataSeeder {
 				dayIndex,
 				lessonNumber,
 				ClassTimetableSlotType.SUBJECT,
+				subject.getName(),
+				subject,
+				roomName,
+				teacherName,
+				startsAt,
+				endsAt
+		);
+	}
+
+	private void seedActivitySlot(
+			ClassTimetableSlotRepository timetableSlotRepository,
+			SchoolClass schoolClass,
+			Semester semester,
+			int dayIndex,
+			int lessonNumber,
+			Subject subject,
+			String roomName,
+			String teacherName,
+			String startsAt,
+			String endsAt
+	) {
+		seedSlot(
+				timetableSlotRepository,
+				schoolClass,
+				semester,
+				dayIndex,
+				lessonNumber,
+				ClassTimetableSlotType.ACTIVITY,
 				subject.getName(),
 				subject,
 				roomName,

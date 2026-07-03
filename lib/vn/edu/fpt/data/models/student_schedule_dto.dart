@@ -78,6 +78,7 @@ class ScheduleItemDto {
   const ScheduleItemDto({
     required this.lessonNumber,
     required this.type,
+    required this.session,
     required this.title,
     required this.lessonLabel,
     required this.timeRange,
@@ -89,6 +90,7 @@ class ScheduleItemDto {
     return ScheduleItemDto(
       lessonNumber: json['lessonNumber'] as int,
       type: json['slotType'] as String? ?? 'SUBJECT',
+      session: json['session'] as String? ?? 'MORNING',
       title: json['title'] as String,
       lessonLabel: json['lessonLabel'] as String,
       timeRange: json['timeRange'] as String,
@@ -99,6 +101,7 @@ class ScheduleItemDto {
 
   final int lessonNumber;
   final String type;
+  final String session;
   final String title;
   final String lessonLabel;
   final String timeRange;
@@ -109,6 +112,7 @@ class ScheduleItemDto {
     return ScheduleItem(
       lessonNumber: lessonNumber,
       type: ScheduleItemType.fromWireValue(type),
+      session: ScheduleSession.fromWireValue(session),
       title: title,
       lessonLabel: lessonLabel,
       timeRange: timeRange,

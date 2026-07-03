@@ -22,6 +22,7 @@ public record StudentScheduleResponse(
 	public record ScheduleItem(
 			int lessonNumber,
 			String slotType,
+			String session,
 			String title,
 			String lessonLabel,
 			String timeRange,

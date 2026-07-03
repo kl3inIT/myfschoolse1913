@@ -473,9 +473,11 @@ class _ScheduleDaySection extends StatelessWidget {
         if (day.items.isEmpty)
           _EmptySchedule(message: emptyMessage)
         else
-          for (final item in day.items) ...[
-            _ScheduleItemTile(item: item),
-            const SizedBox(height: 12),
+          for (final session in ScheduleSession.values) ...[
+            _ScheduleSessionGroup(
+              session: session,
+              items: _itemsForSession(session),
+            ),
           ],
       ],
     );
@@ -497,7 +499,7 @@ class _ScheduleDaySection extends StatelessWidget {
       parts.add('$lessonCount tiết học');
     }
     if (mealCount > 0) {
-      parts.add('$mealCount hoạt động bán trú');
+      parts.add('ăn trưa/nghỉ trưa');
     }
     if (activityCount > 0) {
       parts.add('$activityCount hoạt động');
@@ -507,6 +509,73 @@ class _ScheduleDaySection extends StatelessWidget {
       return 'Không có lịch học';
     }
     return parts.join(' · ');
+  }
+
+  List<ScheduleItem> _itemsForSession(ScheduleSession session) {
+    return day.items.where((item) => item.session == session).toList();
+  }
+}
+
+class _ScheduleSessionGroup extends StatelessWidget {
+  const _ScheduleSessionGroup({required this.session, required this.items});
+
+  final ScheduleSession session;
+  final List<ScheduleItem> items;
+
+  @override
+  Widget build(BuildContext context) {
+    if (items.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _SessionMarker(session: session),
+              const SizedBox(width: 8),
+              Text(
+                session.label,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: FptColors.textPrimary,
+                  fontWeight: FontWeight.w800,
+                  height: 1.2,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          for (final item in items) ...[
+            _ScheduleItemTile(item: item),
+            if (item != items.last) const SizedBox(height: 12),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _SessionMarker extends StatelessWidget {
+  const _SessionMarker({required this.session});
+
+  final ScheduleSession session;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = switch (session) {
+      ScheduleSession.morning => FptColors.blue,
+      ScheduleSession.noon => const Color(0xFF047857),
+      ScheduleSession.afternoon => FptColors.orangeDeep,
+    };
+
+    return Container(
+      width: 8,
+      height: 8,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+    );
   }
 }
 
@@ -588,9 +657,9 @@ class _ScheduleItemTile extends StatelessWidget {
   String get _subtitle {
     if (item.type == ScheduleItemType.meal) {
       if (item.roomName.isEmpty) {
-        return 'Bán trú';
+        return 'Ăn trưa / nghỉ trưa';
       }
-      return 'Bán trú · ${item.roomName}';
+      return 'Ăn trưa / nghỉ trưa · ${item.roomName}';
     }
     if (item.roomName.isEmpty) {
       return item.lessonLabel;
@@ -617,7 +686,7 @@ class _MealChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(11),
       ),
       child: Text(
-        'Bán trú',
+        'Giữa ngày',
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
           color: const Color(0xFF047857),
           fontWeight: FontWeight.w800,

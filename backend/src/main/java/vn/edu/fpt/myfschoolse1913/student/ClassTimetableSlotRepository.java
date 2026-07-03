@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface ClassTimetableSlotRepository extends JpaRepository<ClassTimetableSlot, UUID> {
 
@@ -24,4 +25,7 @@ public interface ClassTimetableSlotRepository extends JpaRepository<ClassTimetab
 			short dayIndex,
 			int lessonNumber
 	);
+
+	@Transactional
+	void deleteBySchoolClassAndSemester(SchoolClass schoolClass, Semester semester);
 }
