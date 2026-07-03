@@ -1,13 +1,18 @@
 package vn.edu.fpt.myfschoolse1913.bootstrap;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import vn.edu.fpt.myfschoolse1913.event.SchoolEvent;
+import vn.edu.fpt.myfschoolse1913.event.SchoolEventRepository;
 import vn.edu.fpt.myfschoolse1913.student.AcademicYear;
 import vn.edu.fpt.myfschoolse1913.student.AcademicYearRepository;
 import vn.edu.fpt.myfschoolse1913.student.ClassTimetableSlot;
@@ -39,7 +44,8 @@ public class DemoSchoolDataSeeder {
 			SemesterRepository semesterRepository,
 			SubjectRepository subjectRepository,
 			SemesterSubjectGradeRepository gradeRepository,
-			ClassTimetableSlotRepository timetableSlotRepository
+			ClassTimetableSlotRepository timetableSlotRepository,
+			SchoolEventRepository eventRepository
 	) {
 		return (args) -> {
 			var user = userRepository.findByPhoneNumber("0900000001")
@@ -106,6 +112,47 @@ public class DemoSchoolDataSeeder {
 
 			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 5, 1, vietnamese, "Phòng A203", "Cô Mai", "07:30", "08:05");
 			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 5, 2, music, "Phòng năng khiếu", "Thầy Nam", "08:25", "09:00");
+
+			seedEvent(
+					eventRepository,
+					academicYear,
+					null,
+					"Hội thao học sinh",
+					"Hoạt động thể thao toàn trường với các nội dung chạy tiếp sức, kéo co và bóng rổ.",
+					"Sân trường FPT Schools",
+					atSchoolTime(2026, 7, 6, 8, 0),
+					atSchoolTime(2026, 7, 6, 10, 30)
+			);
+			seedEvent(
+					eventRepository,
+					academicYear,
+					schoolClass,
+					"Sinh hoạt lớp cuối tuần",
+					"Lớp tổng kết tuần học, nhận xét nề nếp và chuẩn bị kế hoạch tuần tiếp theo.",
+					"Phòng A203",
+					atSchoolTime(2026, 7, 10, 15, 0),
+					atSchoolTime(2026, 7, 10, 15, 45)
+			);
+			seedEvent(
+					eventRepository,
+					academicYear,
+					null,
+					"Ngày hội câu lạc bộ",
+					"Học sinh trải nghiệm các câu lạc bộ thể thao, nghệ thuật và STEM.",
+					"Nhà đa năng",
+					atSchoolTime(2026, 7, 12, 8, 30),
+					atSchoolTime(2026, 7, 12, 11, 0)
+			);
+			seedEvent(
+					eventRepository,
+					academicYear,
+					null,
+					"Lễ tổng kết học kỳ",
+					"Tổng kết hoạt động học kỳ, khen thưởng học sinh tiêu biểu và phổ biến kế hoạch mới.",
+					"Hội trường",
+					atSchoolTime(2026, 7, 25, 8, 0),
+					atSchoolTime(2026, 7, 25, 9, 30)
+			);
 		};
 	}
 
@@ -228,5 +275,32 @@ public class DemoSchoolDataSeeder {
 						LocalTime.parse(startsAt),
 						LocalTime.parse(endsAt)
 				)));
+	}
+
+	private void seedEvent(
+			SchoolEventRepository eventRepository,
+			AcademicYear academicYear,
+			SchoolClass schoolClass,
+			String title,
+			String description,
+			String location,
+			Instant startsAt,
+			Instant endsAt
+	) {
+		eventRepository.findByTitleAndStartsAt(title, startsAt)
+				.orElseGet(() -> eventRepository.save(new SchoolEvent(
+						academicYear,
+						schoolClass,
+						title,
+						description,
+						location,
+						startsAt,
+						endsAt,
+						true
+				)));
+	}
+
+	private Instant atSchoolTime(int year, int month, int day, int hour, int minute) {
+		return OffsetDateTime.of(year, month, day, hour, minute, 0, 0, ZoneOffset.ofHours(7)).toInstant();
 	}
 }

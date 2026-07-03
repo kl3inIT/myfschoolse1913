@@ -7,6 +7,7 @@ import 'package:myfschoolse1913/vn/edu/fpt/ui/features/auth/views/forgot_passwor
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/auth/views/login_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/auth/views/reset_password_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/auth/views/verify_otp_page.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/ui/features/events/views/events_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/grades/views/semester_grades_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/home/views/home_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/schedule/views/schedule_page.dart';
@@ -19,6 +20,7 @@ abstract final class AppRoutes {
   static const home = '/home';
   static const semesterGrades = '/semester-grades';
   static const schedule = '/schedule';
+  static const events = '/events';
   static const account = '/account';
 }
 
@@ -46,6 +48,7 @@ GoRouter createAppRouter({required AppSessionController sessionController}) {
           path == AppRoutes.home ||
           path == AppRoutes.semesterGrades ||
           path == AppRoutes.schedule ||
+          path == AppRoutes.events ||
           path == AppRoutes.account;
 
       return switch (sessionController.status) {
@@ -150,6 +153,18 @@ GoRouter createAppRouter({required AppSessionController sessionController}) {
           return NoTransitionPage(
             child: SchedulePage(
               scheduleRepository: services.scheduleRepository,
+              sessionController: services.sessionController,
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.events,
+        pageBuilder: (context, state) {
+          final services = AppDependencies.of(context);
+          return NoTransitionPage(
+            child: EventsPage(
+              eventsRepository: services.eventsRepository,
               sessionController: services.sessionController,
             ),
           );

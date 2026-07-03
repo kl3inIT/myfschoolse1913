@@ -5,12 +5,14 @@ import 'package:myfschoolse1913/vn/edu/fpt/app/app_session_controller.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/core/network/api_client.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/auth_repository.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/dashboard_repository.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/events_repository.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/grades_repository.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/schedule_repository.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/user_repository.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/services/authenticated_api_client.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/services/auth_api_service.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/services/dashboard_api_service.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/data/services/events_api_service.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/services/grades_api_service.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/services/schedule_api_service.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/services/token_storage.dart';
@@ -23,12 +25,14 @@ class AppServices {
     required this.authApiService,
     required this.authenticatedApiClient,
     required this.dashboardApiService,
+    required this.eventsApiService,
     required this.gradesApiService,
     required this.scheduleApiService,
     required this.userApiService,
     required this.tokenStorage,
     required this.authRepository,
     required this.dashboardRepository,
+    required this.eventsRepository,
     required this.gradesRepository,
     required this.scheduleRepository,
     required this.userRepository,
@@ -46,6 +50,7 @@ class AppServices {
       tokenStorage: tokenStorage,
     );
     final dashboardApiService = DashboardApiService(authenticatedApiClient);
+    final eventsApiService = EventsApiService(authenticatedApiClient);
     final gradesApiService = GradesApiService(authenticatedApiClient);
     final scheduleApiService = ScheduleApiService(authenticatedApiClient);
     final userApiService = UserApiService(authenticatedApiClient);
@@ -55,6 +60,9 @@ class AppServices {
     );
     final dashboardRepository = DashboardRepository(
       dashboardApiService: dashboardApiService,
+    );
+    final eventsRepository = EventsRepository(
+      eventsApiService: eventsApiService,
     );
     final gradesRepository = GradesRepository(
       gradesApiService: gradesApiService,
@@ -73,12 +81,14 @@ class AppServices {
       authApiService: authApiService,
       authenticatedApiClient: authenticatedApiClient,
       dashboardApiService: dashboardApiService,
+      eventsApiService: eventsApiService,
       gradesApiService: gradesApiService,
       scheduleApiService: scheduleApiService,
       userApiService: userApiService,
       tokenStorage: tokenStorage,
       authRepository: authRepository,
       dashboardRepository: dashboardRepository,
+      eventsRepository: eventsRepository,
       gradesRepository: gradesRepository,
       scheduleRepository: scheduleRepository,
       userRepository: userRepository,
@@ -91,12 +101,14 @@ class AppServices {
   final AuthApiService authApiService;
   final AuthenticatedApiClient authenticatedApiClient;
   final DashboardApiService dashboardApiService;
+  final EventsApiService eventsApiService;
   final GradesApiService gradesApiService;
   final ScheduleApiService scheduleApiService;
   final UserApiService userApiService;
   final TokenStorage tokenStorage;
   final AuthRepository authRepository;
   final DashboardRepository dashboardRepository;
+  final EventsRepository eventsRepository;
   final GradesRepository gradesRepository;
   final ScheduleRepository scheduleRepository;
   final UserRepository userRepository;
