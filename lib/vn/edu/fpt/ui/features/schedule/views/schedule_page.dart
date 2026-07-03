@@ -9,8 +9,6 @@ import 'package:myfschoolse1913/vn/edu/fpt/ui/core/widgets/student_bottom_naviga
 import 'package:myfschoolse1913/vn/edu/fpt/ui/core/widgets/student_top_app_bar.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/schedule/view_models/schedule_view_model.dart';
 
-enum _ScheduleViewMode { today, week }
-
 class SchedulePage extends StatefulWidget {
   const SchedulePage({
     super.key,
@@ -27,7 +25,7 @@ class SchedulePage extends StatefulWidget {
 
 class _SchedulePageState extends State<SchedulePage> {
   late final ScheduleViewModel _viewModel;
-  _ScheduleViewMode _viewMode = _ScheduleViewMode.today;
+  DateTime? _selectedDate;
 
   @override
   void initState() {
@@ -46,16 +44,60 @@ class _SchedulePageState extends State<SchedulePage> {
     super.dispose();
   }
 
-  Future<void> _loadSchedule() async {
-    final result = await _viewModel.loadSchedule();
-    if (!mounted || result != ScheduleLoadResult.sessionExpired) {
+  Future<void> _loadSchedule({DateTime? weekStart}) async {
+    final result = await _viewModel.loadSchedule(weekStart: weekStart);
+    if (!mounted) {
       return;
     }
 
-    await widget.sessionController.logout();
-    if (mounted) {
-      context.go(AppRoutes.login);
+    if (result == ScheduleLoadResult.sessionExpired) {
+      await widget.sessionController.logout();
+      if (mounted) {
+        context.go(AppRoutes.login);
+      }
+      return;
     }
+
+    if (result == ScheduleLoadResult.success) {
+      final schedule = _viewModel.state.schedule;
+      if (schedule != null) {
+        setState(() {
+          _selectedDate = _preferredSelectedDate(schedule);
+        });
+      }
+    }
+  }
+
+  DateTime _preferredSelectedDate(StudentSchedule schedule) {
+    final selectedDate = _selectedDate;
+    if (selectedDate != null &&
+        _dayForDate(schedule.days, selectedDate) != null) {
+      return selectedDate;
+    }
+
+    final today = schedule.todaySchedule;
+    if (today != null) {
+      return today.date;
+    }
+
+    return schedule.days.first.date;
+  }
+
+  Future<void> _loadAdjacentWeek(int weekOffset) async {
+    final currentSchedule = _viewModel.state.schedule;
+    if (currentSchedule == null) {
+      return;
+    }
+
+    await _loadSchedule(
+      weekStart: currentSchedule.weekStart.add(Duration(days: 7 * weekOffset)),
+    );
+  }
+
+  void _selectDate(DateTime date) {
+    setState(() {
+      _selectedDate = date;
+    });
   }
 
   void _goHome() {
@@ -74,12 +116,6 @@ class _SchedulePageState extends State<SchedulePage> {
         context.go(AppRoutes.account);
         break;
     }
-  }
-
-  void _setViewMode(_ScheduleViewMode viewMode) {
-    setState(() {
-      _viewMode = viewMode;
-    });
   }
 
   @override
@@ -105,9 +141,13 @@ class _SchedulePageState extends State<SchedulePage> {
                           schedule: state.schedule,
                           isLoading: state.isLoading,
                           errorMessage: state.errorMessage,
-                          viewMode: _viewMode,
-                          onViewModeChanged: _setViewMode,
-                          onRetry: _loadSchedule,
+                          selectedDate: _selectedDate,
+                          onDateSelected: _selectDate,
+                          onPreviousWeek: () => _loadAdjacentWeek(-1),
+                          onNextWeek: () => _loadAdjacentWeek(1),
+                          onRetry: () => _loadSchedule(
+                            weekStart: state.schedule?.weekStart,
+                          ),
                         ),
                       ),
                       StudentBottomNavigation(
@@ -131,16 +171,20 @@ class _ScheduleBody extends StatelessWidget {
     required this.schedule,
     required this.isLoading,
     required this.errorMessage,
-    required this.viewMode,
-    required this.onViewModeChanged,
+    required this.selectedDate,
+    required this.onDateSelected,
+    required this.onPreviousWeek,
+    required this.onNextWeek,
     required this.onRetry,
   });
 
   final StudentSchedule? schedule;
   final bool isLoading;
   final String? errorMessage;
-  final _ScheduleViewMode viewMode;
-  final ValueChanged<_ScheduleViewMode> onViewModeChanged;
+  final DateTime? selectedDate;
+  final ValueChanged<DateTime> onDateSelected;
+  final VoidCallback onPreviousWeek;
+  final VoidCallback onNextWeek;
   final VoidCallback onRetry;
 
   @override
@@ -155,124 +199,235 @@ class _ScheduleBody extends StatelessWidget {
       return _ScheduleError(message: errorMessage, onRetry: onRetry);
     }
 
+    final selectedDay =
+        _dayForDate(loadedSchedule.days, selectedDate) ??
+        loadedSchedule.todaySchedule ??
+        loadedSchedule.days.first;
     final weekEnd = loadedSchedule.weekStart.add(const Duration(days: 6));
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+    return Stack(
       children: [
-        Text(
-          'Tuần này',
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            color: FptColors.textPrimary,
-            fontWeight: FontWeight.w800,
-            height: 1.2,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          '${_formatDate(loadedSchedule.weekStart)} - ${_formatDate(weekEnd)}',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: FptColors.textSecondary,
-            height: 1.2,
-          ),
-        ),
-        const SizedBox(height: 18),
-        _ScheduleSegmentedControl(
-          viewMode: viewMode,
-          onChanged: onViewModeChanged,
-        ),
-        const SizedBox(height: 24),
-        if (viewMode == _ScheduleViewMode.today)
-          _ScheduleDaySection(
-            day: loadedSchedule.todaySchedule,
-            emptyMessage: 'Hôm nay chưa có lịch học',
-          )
-        else
-          for (final day in loadedSchedule.days) ...[
-            _ScheduleDaySection(day: day, emptyMessage: 'Không có lịch học'),
-            const SizedBox(height: 18),
+        ListView(
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+          children: [
+            _ScheduleWeekHeader(
+              weekStart: loadedSchedule.weekStart,
+              weekEnd: weekEnd,
+              academicYearName: loadedSchedule.academicYearName,
+              semesterName: loadedSchedule.semesterName,
+              onPreviousWeek: onPreviousWeek,
+              onNextWeek: onNextWeek,
+            ),
+            const SizedBox(height: 24),
+            _WeekDaySelector(
+              days: loadedSchedule.days,
+              selectedDate: selectedDay.date,
+              onDateSelected: onDateSelected,
+            ),
+            const SizedBox(height: 28),
+            _ScheduleDaySection(
+              day: selectedDay,
+              emptyMessage: 'Ngày này chưa có lịch học',
+            ),
           ],
+        ),
+        if (isLoading)
+          const Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: LinearProgressIndicator(minHeight: 2),
+          ),
       ],
     );
   }
-
-  String _formatDate(DateTime date) {
-    final day = date.day.toString().padLeft(2, '0');
-    final month = date.month.toString().padLeft(2, '0');
-    return '$day/$month/${date.year}';
-  }
 }
 
-class _ScheduleSegmentedControl extends StatelessWidget {
-  const _ScheduleSegmentedControl({
-    required this.viewMode,
-    required this.onChanged,
+class _ScheduleWeekHeader extends StatelessWidget {
+  const _ScheduleWeekHeader({
+    required this.weekStart,
+    required this.weekEnd,
+    required this.academicYearName,
+    required this.semesterName,
+    required this.onPreviousWeek,
+    required this.onNextWeek,
   });
 
-  final _ScheduleViewMode viewMode;
-  final ValueChanged<_ScheduleViewMode> onChanged;
+  final DateTime weekStart;
+  final DateTime weekEnd;
+  final String academicYearName;
+  final String semesterName;
+  final VoidCallback onPreviousWeek;
+  final VoidCallback onNextWeek;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 40,
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: FptColors.field,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: _ScheduleSegmentButton(
-              label: 'Hôm nay',
-              selected: viewMode == _ScheduleViewMode.today,
-              onTap: () => onChanged(_ScheduleViewMode.today),
-            ),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Tuần ${_formatShortDate(weekStart)} - ${_formatShortDate(weekEnd)}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: FptColors.textPrimary,
+                  fontWeight: FontWeight.w800,
+                  height: 1.2,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                '$academicYearName · $semesterName',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: FptColors.textSecondary,
+                  fontWeight: FontWeight.w600,
+                  height: 1.2,
+                ),
+              ),
+            ],
           ),
-          Expanded(
-            child: _ScheduleSegmentButton(
-              label: 'Tuần này',
-              selected: viewMode == _ScheduleViewMode.week,
-              onTap: () => onChanged(_ScheduleViewMode.week),
+        ),
+        const SizedBox(width: 12),
+        Row(
+          children: [
+            _WeekArrowButton(
+              icon: Icons.chevron_left,
+              tooltip: 'Tuần trước',
+              onPressed: onPreviousWeek,
             ),
+            const SizedBox(width: 8),
+            _WeekArrowButton(
+              icon: Icons.chevron_right,
+              tooltip: 'Tuần sau',
+              onPressed: onNextWeek,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _WeekArrowButton extends StatelessWidget {
+  const _WeekArrowButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 36,
+      height: 36,
+      child: IconButton(
+        tooltip: tooltip,
+        onPressed: onPressed,
+        padding: EdgeInsets.zero,
+        style: IconButton.styleFrom(
+          backgroundColor: Colors.white,
+          foregroundColor: FptColors.textPrimary,
+          side: const BorderSide(color: FptColors.border),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
-        ],
+        ),
+        icon: Icon(icon, size: 22),
       ),
     );
   }
 }
 
-class _ScheduleSegmentButton extends StatelessWidget {
-  const _ScheduleSegmentButton({
-    required this.label,
+class _WeekDaySelector extends StatelessWidget {
+  const _WeekDaySelector({
+    required this.days,
+    required this.selectedDate,
+    required this.onDateSelected,
+  });
+
+  final List<ScheduleDay> days;
+  final DateTime selectedDate;
+  final ValueChanged<DateTime> onDateSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        for (var index = 0; index < days.length; index++) ...[
+          if (index > 0) const SizedBox(width: 8),
+          _WeekDayChip(
+            day: days[index],
+            selected: _isSameDate(days[index].date, selectedDate),
+            onTap: () => onDateSelected(days[index].date),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _WeekDayChip extends StatelessWidget {
+  const _WeekDayChip({
+    required this.day,
     required this.selected,
     required this.onTap,
   });
 
-  final String label;
+  final ScheduleDay day;
   final bool selected;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final foreground = selected ? Colors.white : FptColors.textPrimary;
+    final secondary = selected ? Colors.white : FptColors.textSecondary;
+
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(9),
+      borderRadius: BorderRadius.circular(12),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 160),
+        width: 42,
+        height: 58,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: selected ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(9),
-        ),
-        child: Text(
-          label,
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-            color: selected ? FptColors.orange : FptColors.textSecondary,
-            fontWeight: FontWeight.w800,
-            height: 1.2,
+          color: selected ? FptColors.orangeDeep : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: selected ? FptColors.orangeDeep : FptColors.border,
           ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              _weekdayShort(day.date),
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: secondary,
+                fontWeight: FontWeight.w800,
+                height: 1.0,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              day.date.day.toString().padLeft(2, '0'),
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: foreground,
+                fontWeight: FontWeight.w800,
+                height: 1.0,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -282,78 +437,73 @@ class _ScheduleSegmentButton extends StatelessWidget {
 class _ScheduleDaySection extends StatelessWidget {
   const _ScheduleDaySection({required this.day, required this.emptyMessage});
 
-  final ScheduleDay? day;
+  final ScheduleDay day;
   final String emptyMessage;
 
   @override
   Widget build(BuildContext context) {
-    final loadedDay = day;
-
-    if (loadedDay == null) {
-      return _EmptySchedule(message: emptyMessage);
-    }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                '${loadedDay.dayLabel}, ${_formatDate(loadedDay.date)}',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: FptColors.textPrimary,
-                  fontWeight: FontWeight.w800,
-                  height: 1.2,
-                ),
-              ),
-            ),
-            if (loadedDay.isToday) const _TodayChip(),
-          ],
+        Text(
+          '${day.dayLabel}, ${_formatShortDate(day.date)}',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            color: FptColors.textPrimary,
+            fontWeight: FontWeight.w800,
+            height: 1.2,
+          ),
         ),
-        const SizedBox(height: 12),
-        if (loadedDay.items.isEmpty)
+        const SizedBox(height: 6),
+        Text(
+          _daySummary(day),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: FptColors.textSecondary,
+            fontWeight: FontWeight.w600,
+            height: 1.2,
+          ),
+        ),
+        const SizedBox(height: 20),
+        if (day.items.isEmpty)
           _EmptySchedule(message: emptyMessage)
         else
-          for (final item in loadedDay.items) ...[
+          for (final item in day.items) ...[
             _ScheduleItemTile(item: item),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
           ],
       ],
     );
   }
 
-  String _formatDate(DateTime date) {
-    final day = date.day.toString().padLeft(2, '0');
-    final month = date.month.toString().padLeft(2, '0');
-    return '$day/$month';
-  }
-}
+  String _daySummary(ScheduleDay day) {
+    final lessonCount = day.items
+        .where((item) => item.type == ScheduleItemType.subject)
+        .length;
+    final mealCount = day.items
+        .where((item) => item.type == ScheduleItemType.meal)
+        .length;
+    final activityCount = day.items
+        .where((item) => item.type == ScheduleItemType.activity)
+        .length;
+    final parts = <String>[];
 
-class _TodayChip extends StatelessWidget {
-  const _TodayChip();
+    if (lessonCount > 0) {
+      parts.add('$lessonCount tiết học');
+    }
+    if (mealCount > 0) {
+      parts.add('$mealCount hoạt động bán trú');
+    }
+    if (activityCount > 0) {
+      parts.add('$activityCount hoạt động');
+    }
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 24,
-      alignment: Alignment.center,
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFEDD5),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        'Hôm nay',
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: FptColors.orangeDeep,
-          fontWeight: FontWeight.w800,
-          height: 1.2,
-        ),
-      ),
-    );
+    if (parts.isEmpty) {
+      return 'Không có lịch học';
+    }
+    return parts.join(' · ');
   }
 }
 
@@ -364,11 +514,9 @@ class _ScheduleItemTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final teacherName = item.teacherName;
-
     return Container(
-      constraints: const BoxConstraints(minHeight: 72),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      constraints: const BoxConstraints(minHeight: 76),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -376,21 +524,6 @@ class _ScheduleItemTile extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
-            width: 34,
-            height: 34,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: FptColors.blue,
-              borderRadius: BorderRadius.circular(9),
-            ),
-            child: const Icon(
-              Icons.calendar_today_outlined,
-              color: Colors.white,
-              size: 18,
-            ),
-          ),
-          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -406,43 +539,42 @@ class _ScheduleItemTile extends StatelessWidget {
                     height: 1.2,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 7),
                 Text(
                   _subtitle,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: FptColors.textSecondary,
+                    fontWeight: FontWeight.w600,
                     height: 1.2,
                   ),
                 ),
-                if (teacherName != null && teacherName.isNotEmpty) ...[
-                  const SizedBox(height: 3),
-                  Text(
-                    teacherName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: FptColors.textSecondary,
-                      height: 1.2,
-                    ),
-                  ),
-                ],
               ],
             ),
           ),
           const SizedBox(width: 12),
           SizedBox(
-            width: 76,
-            child: Text(
-              item.timeRange,
-              maxLines: 2,
-              textAlign: TextAlign.right,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: FptColors.blue,
-                fontWeight: FontWeight.w800,
-                height: 1.2,
-              ),
+            width: 80,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  _startTime,
+                  maxLines: 1,
+                  textAlign: TextAlign.right,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: FptColors.blue,
+                    fontWeight: FontWeight.w800,
+                    height: 1.2,
+                  ),
+                ),
+                if (item.type == ScheduleItemType.meal) ...[
+                  const SizedBox(height: 8),
+                  const _MealChip(),
+                ],
+              ],
             ),
           ),
         ],
@@ -451,10 +583,45 @@ class _ScheduleItemTile extends StatelessWidget {
   }
 
   String get _subtitle {
+    if (item.type == ScheduleItemType.meal) {
+      if (item.roomName.isEmpty) {
+        return 'Bán trú';
+      }
+      return 'Bán trú · ${item.roomName}';
+    }
     if (item.roomName.isEmpty) {
       return item.lessonLabel;
     }
-    return '${item.lessonLabel} - ${item.roomName}';
+    return '${item.lessonLabel} · ${item.roomName}';
+  }
+
+  String get _startTime {
+    return item.timeRange.split(' - ').first;
+  }
+}
+
+class _MealChip extends StatelessWidget {
+  const _MealChip();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 22,
+      alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFD1FAE5),
+        borderRadius: BorderRadius.circular(11),
+      ),
+      child: Text(
+        'Bán trú',
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: const Color(0xFF047857),
+          fontWeight: FontWeight.w800,
+          height: 1.0,
+        ),
+      ),
+    );
   }
 }
 
@@ -466,7 +633,7 @@ class _EmptySchedule extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 72,
+      height: 76,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: FptColors.field,
@@ -511,4 +678,42 @@ class _ScheduleError extends StatelessWidget {
       ),
     );
   }
+}
+
+ScheduleDay? _dayForDate(List<ScheduleDay> days, DateTime? date) {
+  if (date == null) {
+    return null;
+  }
+
+  for (final day in days) {
+    if (_isSameDate(day.date, date)) {
+      return day;
+    }
+  }
+
+  return null;
+}
+
+bool _isSameDate(DateTime first, DateTime second) {
+  return first.year == second.year &&
+      first.month == second.month &&
+      first.day == second.day;
+}
+
+String _formatShortDate(DateTime date) {
+  final day = date.day.toString().padLeft(2, '0');
+  final month = date.month.toString().padLeft(2, '0');
+  return '$day/$month';
+}
+
+String _weekdayShort(DateTime date) {
+  return switch (date.weekday) {
+    DateTime.monday => 'T2',
+    DateTime.tuesday => 'T3',
+    DateTime.wednesday => 'T4',
+    DateTime.thursday => 'T5',
+    DateTime.friday => 'T6',
+    DateTime.saturday => 'T7',
+    _ => 'CN',
+  };
 }

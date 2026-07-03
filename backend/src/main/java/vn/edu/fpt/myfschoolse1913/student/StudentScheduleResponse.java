@@ -6,6 +6,8 @@ import java.util.List;
 public record StudentScheduleResponse(
 		LocalDate weekStart,
 		LocalDate today,
+		String academicYearName,
+		String semesterName,
 		List<ScheduleDay> days
 ) {
 
@@ -19,6 +21,7 @@ public record StudentScheduleResponse(
 
 	public record ScheduleItem(
 			int lessonNumber,
+			String slotType,
 			String title,
 			String lessonLabel,
 			String timeRange,

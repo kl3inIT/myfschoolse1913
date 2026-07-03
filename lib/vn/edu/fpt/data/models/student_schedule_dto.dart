@@ -4,6 +4,8 @@ class StudentScheduleDto {
   const StudentScheduleDto({
     required this.weekStart,
     required this.today,
+    required this.academicYearName,
+    required this.semesterName,
     required this.days,
   });
 
@@ -11,6 +13,8 @@ class StudentScheduleDto {
     return StudentScheduleDto(
       weekStart: DateTime.parse(json['weekStart'] as String),
       today: DateTime.parse(json['today'] as String),
+      academicYearName: json['academicYearName'] as String? ?? '',
+      semesterName: json['semesterName'] as String? ?? '',
       days: (json['days'] as List<Object?>)
           .cast<Map<String, Object?>>()
           .map(ScheduleDayDto.fromJson)
@@ -20,12 +24,16 @@ class StudentScheduleDto {
 
   final DateTime weekStart;
   final DateTime today;
+  final String academicYearName;
+  final String semesterName;
   final List<ScheduleDayDto> days;
 
   StudentSchedule toDomain() {
     return StudentSchedule(
       weekStart: weekStart,
       today: today,
+      academicYearName: academicYearName,
+      semesterName: semesterName,
       days: days.map((day) => day.toDomain()).toList(growable: false),
     );
   }
@@ -69,6 +77,7 @@ class ScheduleDayDto {
 class ScheduleItemDto {
   const ScheduleItemDto({
     required this.lessonNumber,
+    required this.type,
     required this.title,
     required this.lessonLabel,
     required this.timeRange,
@@ -79,6 +88,7 @@ class ScheduleItemDto {
   factory ScheduleItemDto.fromJson(Map<String, Object?> json) {
     return ScheduleItemDto(
       lessonNumber: json['lessonNumber'] as int,
+      type: json['slotType'] as String? ?? 'SUBJECT',
       title: json['title'] as String,
       lessonLabel: json['lessonLabel'] as String,
       timeRange: json['timeRange'] as String,
@@ -88,6 +98,7 @@ class ScheduleItemDto {
   }
 
   final int lessonNumber;
+  final String type;
   final String title;
   final String lessonLabel;
   final String timeRange;
@@ -97,6 +108,7 @@ class ScheduleItemDto {
   ScheduleItem toDomain() {
     return ScheduleItem(
       lessonNumber: lessonNumber,
+      type: ScheduleItemType.fromWireValue(type),
       title: title,
       lessonLabel: lessonLabel,
       timeRange: timeRange,

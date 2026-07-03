@@ -5,11 +5,15 @@ class StudentSchedule {
   const StudentSchedule({
     required this.weekStart,
     required this.today,
+    required this.academicYearName,
+    required this.semesterName,
     required this.days,
   });
 
   final DateTime weekStart;
   final DateTime today;
+  final String academicYearName;
+  final String semesterName;
   final List<ScheduleDay> days;
 
   ScheduleDay? get todaySchedule {
@@ -41,6 +45,7 @@ class ScheduleDay {
 class ScheduleItem {
   const ScheduleItem({
     required this.lessonNumber,
+    required this.type,
     required this.title,
     required this.lessonLabel,
     required this.timeRange,
@@ -49,9 +54,24 @@ class ScheduleItem {
   });
 
   final int lessonNumber;
+  final ScheduleItemType type;
   final String title;
   final String lessonLabel;
   final String timeRange;
   final String roomName;
   final String? teacherName;
+}
+
+enum ScheduleItemType {
+  subject,
+  meal,
+  activity;
+
+  static ScheduleItemType fromWireValue(String value) {
+    return switch (value) {
+      'MEAL' => ScheduleItemType.meal,
+      'ACTIVITY' => ScheduleItemType.activity,
+      _ => ScheduleItemType.subject,
+    };
+  }
 }

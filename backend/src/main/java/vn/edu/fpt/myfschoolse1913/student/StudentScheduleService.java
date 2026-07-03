@@ -46,6 +46,8 @@ public class StudentScheduleService {
 		return new StudentScheduleResponse(
 				weekStart,
 				today,
+				student.getSchoolClass().getAcademicYear().getName(),
+				semester.getName(),
 				buildDays(weekStart, today, slots)
 		);
 	}
@@ -93,6 +95,7 @@ public class StudentScheduleService {
 				.filter((slot) -> slot.getDayIndex() == dayIndex)
 				.map((slot) -> new StudentScheduleResponse.ScheduleItem(
 						slot.getLessonNumber(),
+						slot.getSlotType().name(),
 						slot.getTitle(),
 						"Tiết " + slot.getLessonNumber(),
 						formatTimeRange(slot.getStartsAt(), slot.getEndsAt()),
