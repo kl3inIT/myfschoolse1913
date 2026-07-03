@@ -116,11 +116,11 @@ public class DemoSchoolDataSeeder {
 			var careerExperience = subject(subjectRepository, "CAREER_EXPERIENCE", "HĐTNHN", 110);
 			var coding = subject(subjectRepository, "CODING", "Coding / Robotics", 120);
 
-			seedGrade(gradeRepository, student, semester, math, "8.5", "TX 8.0 - GK 8.5 - CK 8.7");
-			seedGrade(gradeRepository, student, semester, literature, "8.1", "TX 8.0 - GK 8.0 - CK 8.3");
-			seedGrade(gradeRepository, student, semester, english, "8.7", "TX 9.0 - GK 8.5 - CK 8.7");
-			seedGrade(gradeRepository, student, semester, physics, "8.3", "TX 8.0 - GK 8.2 - CK 8.5");
-			seedGrade(gradeRepository, student, semester, informatics, "8.6", "TX 8.5 - GK 8.7 - CK 8.6");
+			seedGrade(gradeRepository, student, semester, math, "8.0", "8.5", "8.7", "8.5", "Giữ tốt tốc độ làm bài tự luận.");
+			seedGrade(gradeRepository, student, semester, literature, "8.0", "8.0", "8.3", "8.1", "Cần bổ sung dẫn chứng khi viết nghị luận.");
+			seedGrade(gradeRepository, student, semester, english, "9.0", "8.5", "8.7", "8.7", "Kỹ năng nói và nghe ổn định.");
+			seedGrade(gradeRepository, student, semester, physics, "8.0", "8.2", "8.5", "8.3", "Nên luyện thêm bài tập vận dụng.");
+			seedGrade(gradeRepository, student, semester, informatics, "8.5", "8.7", "8.6", "8.6", "Hoàn thành tốt bài thực hành lập trình.");
 
 			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 1, 1, math, "Phòng 10A1", "Cô Lan", "07:45", "08:30");
 			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 1, 2, literature, "Phòng 10A1", "Cô Mai", "08:40", "09:25");
@@ -338,16 +338,23 @@ public class DemoSchoolDataSeeder {
 			Student student,
 			Semester semester,
 			Subject subject,
+			String formativeScore,
+			String midtermScore,
+			String finalScore,
 			String averageScore,
-			String detail
+			String teacherComment
 	) {
 		gradeRepository.findByStudentAndSemesterAndSubject(student, semester, subject)
 				.orElseGet(() -> gradeRepository.save(new SemesterSubjectGrade(
 						student,
 						semester,
 						subject,
+						new BigDecimal(formativeScore),
+						new BigDecimal(midtermScore),
+						new BigDecimal(finalScore),
 						new BigDecimal(averageScore),
-						detail
+						"TX " + formativeScore + " - GK " + midtermScore + " - CK " + finalScore,
+						teacherComment
 				)));
 	}
 

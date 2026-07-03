@@ -143,42 +143,29 @@ class _SemesterGradesBody extends StatelessWidget {
       return _GradesError(message: errorMessage, onRetry: onRetry);
     }
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
-      children: [
-        Text(
-          loadedGrades.semester,
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            color: FptColors.textPrimary,
-            fontWeight: FontWeight.w800,
-            height: 1.2,
+    return RefreshIndicator(
+      onRefresh: () async => onRetry(),
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+        children: [
+          _GradeSummaryCard(grades: loadedGrades),
+          const SizedBox(height: 24),
+          Text(
+            'Bảng điểm môn học',
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              color: FptColors.textPrimary,
+              fontWeight: FontWeight.w800,
+              height: 1.2,
+            ),
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'Tổng quan kết quả học tập',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: FptColors.textSecondary,
-            height: 1.2,
-          ),
-        ),
-        const SizedBox(height: 20),
-        _GradeSummaryCard(grades: loadedGrades),
-        const SizedBox(height: 24),
-        Text(
-          'Bảng điểm môn học',
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            color: FptColors.textPrimary,
-            fontWeight: FontWeight.w800,
-            height: 1.2,
-          ),
-        ),
-        const SizedBox(height: 12),
-        for (final subject in loadedGrades.subjects) ...[
-          _SubjectGradeTile(subject: subject),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
+          for (final subject in loadedGrades.subjects) ...[
+            _SubjectGradeTile(subject: subject),
+            const SizedBox(height: 12),
+          ],
         ],
-      ],
+      ),
     );
   }
 }
@@ -191,40 +178,82 @@ class _GradeSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 92,
-      padding: const EdgeInsets.symmetric(horizontal: 18),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: const Color(0xFFFFF7ED),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFFED7AA)),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Điểm trung bình',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: FptColors.textSecondary,
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      grades.semester,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: FptColors.textPrimary,
+                        fontWeight: FontWeight.w800,
+                        height: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      '${grades.className} · ${grades.academicYear}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: FptColors.textSecondary,
+                        fontWeight: FontWeight.w600,
+                        height: 1.2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              _RankChip(rank: grades.rank),
+            ],
+          ),
+          const SizedBox(height: 18),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                grades.averageScore.toStringAsFixed(1),
+                style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                  color: FptColors.orangeDeep,
+                  fontWeight: FontWeight.w800,
+                  height: 1.0,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 5),
+                child: Text(
+                  'TBM học kỳ',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: FptColors.textPrimary,
+                    fontWeight: FontWeight.w700,
                     height: 1.2,
                   ),
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  grades.averageScore.toStringAsFixed(1),
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: FptColors.orangeDeep,
-                    fontWeight: FontWeight.w800,
-                    height: 1.2,
-                  ),
-                ),
-              ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Text(
+            grades.note,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: FptColors.textSecondary,
+              fontWeight: FontWeight.w600,
+              height: 1.35,
             ),
           ),
-          _RankChip(rank: grades.rank),
         ],
       ),
     );
@@ -240,9 +269,9 @@ class _RankChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 30,
-      constraints: const BoxConstraints(minWidth: 88),
+      constraints: const BoxConstraints(minWidth: 76),
       alignment: Alignment.center,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 14),
       decoration: BoxDecoration(
         color: const Color(0xFFD1FAE5),
         borderRadius: BorderRadius.circular(15),
@@ -267,23 +296,22 @@ class _SubjectGradeTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(minHeight: 64),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: FptColors.border),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
                   subject.name,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: FptColors.textPrimary,
@@ -291,33 +319,155 @@ class _SubjectGradeTile extends StatelessWidget {
                     height: 1.2,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  subject.detail,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: FptColors.textSecondary,
-                    height: 1.2,
-                  ),
-                ),
-              ],
+              ),
+              const SizedBox(width: 12),
+              _SubjectStatusChip(status: subject.status),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _ScoreGrid(subject: subject),
+          const SizedBox(height: 12),
+          _TeacherComment(comment: subject.teacherComment),
+        ],
+      ),
+    );
+  }
+}
+
+class _ScoreGrid extends StatelessWidget {
+  const _ScoreGrid({required this.subject});
+
+  final SubjectGrade subject;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _ScoreBox(label: 'TX', value: subject.formativeScore),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _ScoreBox(label: 'GK', value: subject.midtermScore),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _ScoreBox(label: 'CK', value: subject.finalScore),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _ScoreBox(
+            label: 'TB',
+            value: subject.score,
+            highlighted: true,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ScoreBox extends StatelessWidget {
+  const _ScoreBox({
+    required this.label,
+    required this.value,
+    this.highlighted = false,
+  });
+
+  final String label;
+  final double value;
+  final bool highlighted;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 50,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: highlighted ? const Color(0xFFEFF6FF) : FptColors.field,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: highlighted ? const Color(0xFFBFDBFE) : FptColors.border,
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: FptColors.textSecondary,
+              fontWeight: FontWeight.w800,
+              height: 1.0,
             ),
           ),
-          const SizedBox(width: 16),
-          SizedBox(
-            width: 42,
-            child: Text(
-              subject.score.toStringAsFixed(1),
-              textAlign: TextAlign.right,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: FptColors.blue,
-                fontWeight: FontWeight.w800,
-                height: 1.2,
-              ),
+          const SizedBox(height: 5),
+          Text(
+            value.toStringAsFixed(1),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: highlighted ? FptColors.blue : FptColors.textPrimary,
+              fontWeight: FontWeight.w800,
+              height: 1.0,
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _SubjectStatusChip extends StatelessWidget {
+  const _SubjectStatusChip({required this.status});
+
+  final String status;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 26,
+      alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFD1FAE5),
+        borderRadius: BorderRadius.circular(13),
+      ),
+      child: Text(
+        status,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: const Color(0xFF047857),
+          fontWeight: FontWeight.w800,
+          height: 1.0,
+        ),
+      ),
+    );
+  }
+}
+
+class _TeacherComment extends StatelessWidget {
+  const _TeacherComment({required this.comment});
+
+  final String comment;
+
+  @override
+  Widget build(BuildContext context) {
+    if (comment.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF7ED),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        comment,
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: FptColors.textPrimary,
+          fontWeight: FontWeight.w600,
+          height: 1.35,
+        ),
       ),
     );
   }

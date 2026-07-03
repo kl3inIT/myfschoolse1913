@@ -35,8 +35,20 @@ public class SemesterSubjectGrade {
 	@Column(name = "average_score", nullable = false, precision = 4, scale = 1)
 	private BigDecimal averageScore;
 
+	@Column(name = "formative_score", precision = 4, scale = 1)
+	private BigDecimal formativeScore;
+
+	@Column(name = "midterm_score", precision = 4, scale = 1)
+	private BigDecimal midtermScore;
+
+	@Column(name = "final_score", precision = 4, scale = 1)
+	private BigDecimal finalScore;
+
 	@Column(nullable = false, length = 255)
 	private String detail;
+
+	@Column(name = "teacher_comment", length = 255)
+	private String teacherComment;
 
 	@Column(name = "created_at", nullable = false)
 	private Instant createdAt = Instant.now();
@@ -47,12 +59,26 @@ public class SemesterSubjectGrade {
 	protected SemesterSubjectGrade() {
 	}
 
-	public SemesterSubjectGrade(Student student, Semester semester, Subject subject, BigDecimal averageScore, String detail) {
+	public SemesterSubjectGrade(
+			Student student,
+			Semester semester,
+			Subject subject,
+			BigDecimal formativeScore,
+			BigDecimal midtermScore,
+			BigDecimal finalScore,
+			BigDecimal averageScore,
+			String detail,
+			String teacherComment
+	) {
 		this.student = student;
 		this.semester = semester;
 		this.subject = subject;
+		this.formativeScore = formativeScore;
+		this.midtermScore = midtermScore;
+		this.finalScore = finalScore;
 		this.averageScore = averageScore;
 		this.detail = detail;
+		this.teacherComment = teacherComment;
 	}
 
 	public Subject getSubject() {
@@ -63,7 +89,23 @@ public class SemesterSubjectGrade {
 		return averageScore;
 	}
 
+	public BigDecimal getFormativeScore() {
+		return formativeScore;
+	}
+
+	public BigDecimal getMidtermScore() {
+		return midtermScore;
+	}
+
+	public BigDecimal getFinalScore() {
+		return finalScore;
+	}
+
 	public String getDetail() {
 		return detail;
+	}
+
+	public String getTeacherComment() {
+		return teacherComment;
 	}
 }

@@ -32,17 +32,29 @@ public class StudentSemesterGradesService {
 		var averageScore = averageScore(grades);
 
 		return new StudentSemesterGradesResponse(
+				student.getSchoolClass().getAcademicYear().getName(),
 				semester.getName(),
+				student.getSchoolClass().getName(),
 				averageScore,
 				rankFor(averageScore),
+				noteFor(averageScore),
 				grades.stream()
 						.map((grade) -> new StudentSemesterGradesResponse.SubjectGrade(
 								grade.getSubject().getName(),
+								score(grade.getFormativeScore()),
+								score(grade.getMidtermScore()),
+								score(grade.getFinalScore()),
 								grade.getAverageScore().doubleValue(),
-								grade.getDetail()
+								statusFor(grade.getAverageScore().doubleValue()),
+								grade.getDetail(),
+								grade.getTeacherComment()
 						))
 						.toList()
 		);
+	}
+
+	private double score(java.math.BigDecimal value) {
+		return value == null ? 0 : value.doubleValue();
 	}
 
 	private double averageScore(List<SemesterSubjectGrade> grades) {
@@ -68,5 +80,31 @@ public class StudentSemesterGradesService {
 			return "Trung bình";
 		}
 		return "Cần cải thiện";
+	}
+
+	private String statusFor(double score) {
+		if (score >= 8.0) {
+			return "Ổn định";
+		}
+		if (score >= 6.5) {
+			return "Cần duy trì";
+		}
+		if (score >= 5.0) {
+			return "Cần chú ý";
+		}
+		return "Cần hỗ trợ";
+	}
+
+	private String noteFor(double averageScore) {
+		if (averageScore >= 8.0) {
+			return "Duy trì nhịp học hiện tại và tập trung các môn định hướng.";
+		}
+		if (averageScore >= 6.5) {
+			return "Cần ổn định điểm kiểm tra giữa kỳ và cuối kỳ.";
+		}
+		if (averageScore >= 5.0) {
+			return "Nên trao đổi giáo viên bộ môn để có kế hoạch cải thiện.";
+		}
+		return "Cần lập kế hoạch phụ đạo với giáo viên chủ nhiệm.";
 	}
 }
