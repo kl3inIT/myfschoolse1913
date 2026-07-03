@@ -5,6 +5,7 @@ import 'package:myfschoolse1913/vn/edu/fpt/app/app_session_controller.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/core/network/api_client.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/applications_repository.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/auth_repository.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/clubs_repository.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/dashboard_repository.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/events_repository.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/grades_repository.dart';
@@ -13,6 +14,7 @@ import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/user_repository.dar
 import 'package:myfschoolse1913/vn/edu/fpt/data/services/authenticated_api_client.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/services/applications_api_service.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/services/auth_api_service.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/data/services/clubs_api_service.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/services/dashboard_api_service.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/services/events_api_service.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/services/grades_api_service.dart';
@@ -27,6 +29,7 @@ class AppServices {
     required this.authApiService,
     required this.authenticatedApiClient,
     required this.applicationsApiService,
+    required this.clubsApiService,
     required this.dashboardApiService,
     required this.eventsApiService,
     required this.gradesApiService,
@@ -35,6 +38,7 @@ class AppServices {
     required this.tokenStorage,
     required this.applicationsRepository,
     required this.authRepository,
+    required this.clubsRepository,
     required this.dashboardRepository,
     required this.eventsRepository,
     required this.gradesRepository,
@@ -56,6 +60,7 @@ class AppServices {
     final applicationsApiService = ApplicationsApiService(
       authenticatedApiClient,
     );
+    final clubsApiService = ClubsApiService(authenticatedApiClient);
     final dashboardApiService = DashboardApiService(authenticatedApiClient);
     final eventsApiService = EventsApiService(authenticatedApiClient);
     final gradesApiService = GradesApiService(authenticatedApiClient);
@@ -68,6 +73,7 @@ class AppServices {
     final applicationsRepository = ApplicationsRepository(
       applicationsApiService: applicationsApiService,
     );
+    final clubsRepository = ClubsRepository(clubsApiService: clubsApiService);
     final dashboardRepository = DashboardRepository(
       dashboardApiService: dashboardApiService,
     );
@@ -91,6 +97,7 @@ class AppServices {
       authApiService: authApiService,
       authenticatedApiClient: authenticatedApiClient,
       applicationsApiService: applicationsApiService,
+      clubsApiService: clubsApiService,
       dashboardApiService: dashboardApiService,
       eventsApiService: eventsApiService,
       gradesApiService: gradesApiService,
@@ -99,6 +106,7 @@ class AppServices {
       tokenStorage: tokenStorage,
       applicationsRepository: applicationsRepository,
       authRepository: authRepository,
+      clubsRepository: clubsRepository,
       dashboardRepository: dashboardRepository,
       eventsRepository: eventsRepository,
       gradesRepository: gradesRepository,
@@ -113,6 +121,7 @@ class AppServices {
   final AuthApiService authApiService;
   final AuthenticatedApiClient authenticatedApiClient;
   final ApplicationsApiService applicationsApiService;
+  final ClubsApiService clubsApiService;
   final DashboardApiService dashboardApiService;
   final EventsApiService eventsApiService;
   final GradesApiService gradesApiService;
@@ -121,6 +130,7 @@ class AppServices {
   final TokenStorage tokenStorage;
   final ApplicationsRepository applicationsRepository;
   final AuthRepository authRepository;
+  final ClubsRepository clubsRepository;
   final DashboardRepository dashboardRepository;
   final EventsRepository eventsRepository;
   final GradesRepository gradesRepository;

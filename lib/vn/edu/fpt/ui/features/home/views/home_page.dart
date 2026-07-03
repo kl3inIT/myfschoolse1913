@@ -347,6 +347,8 @@ class _FeatureGrid extends StatelessWidget {
         context.go(AppRoutes.events);
       case 'APPLICATIONS':
         context.go(AppRoutes.applications);
+      case 'CLUBS':
+        context.go(AppRoutes.clubs);
     }
   }
 }

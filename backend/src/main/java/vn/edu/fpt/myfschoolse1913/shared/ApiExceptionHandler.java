@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
@@ -30,6 +31,13 @@ public class ApiExceptionHandler {
 		return build(HttpStatus.TOO_MANY_REQUESTS, exception.getMessage(), request);
 	}
 
+	@ExceptionHandler(ResponseStatusException.class)
+	ResponseEntity<ApiError> handleResponseStatus(ResponseStatusException exception, HttpServletRequest request) {
+		var status = HttpStatus.valueOf(exception.getStatusCode().value());
+		var message = exception.getReason() == null ? status.getReasonPhrase() : exception.getReason();
+		return build(status, message, request);
+	}
+
 	private ResponseEntity<ApiError> build(HttpStatus status, String message, HttpServletRequest request) {
 		return ResponseEntity.status(status).body(new ApiError(
 				Instant.now(),
@@ -43,6 +51,7 @@ public class ApiExceptionHandler {
 	private String reasonPhrase(HttpStatus status) {
 		return switch (status) {
 			case BAD_REQUEST -> "Yêu cầu không hợp lệ";
+			case NOT_FOUND -> "Không tìm thấy";
 			case UNAUTHORIZED -> "Không được phép";
 			case TOO_MANY_REQUESTS -> "Quá nhiều yêu cầu";
 			default -> status.getReasonPhrase();

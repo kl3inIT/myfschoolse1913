@@ -11,6 +11,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import vn.edu.fpt.myfschoolse1913.club.ClubRegistration;
+import vn.edu.fpt.myfschoolse1913.club.ClubRegistrationRepository;
+import vn.edu.fpt.myfschoolse1913.club.SchoolClub;
+import vn.edu.fpt.myfschoolse1913.club.SchoolClubRepository;
 import vn.edu.fpt.myfschoolse1913.application.StudentApplication;
 import vn.edu.fpt.myfschoolse1913.application.StudentApplicationRepository;
 import vn.edu.fpt.myfschoolse1913.application.StudentApplicationStatus;
@@ -50,7 +54,9 @@ public class DemoSchoolDataSeeder {
 			SemesterSubjectGradeRepository gradeRepository,
 			ClassTimetableSlotRepository timetableSlotRepository,
 			SchoolEventRepository eventRepository,
-			StudentApplicationRepository applicationRepository
+			StudentApplicationRepository applicationRepository,
+			SchoolClubRepository clubRepository,
+			ClubRegistrationRepository clubRegistrationRepository
 	) {
 		return (args) -> {
 			var user = userRepository.findByPhoneNumber("0900000001")
@@ -189,6 +195,36 @@ public class DemoSchoolDataSeeder {
 					"Đăng ký suất ăn tháng 7",
 					"Cập nhật thực đơn tháng 7"
 			);
+
+			var footballClub = seedClub(
+					clubRepository,
+					"CLB Bóng đá",
+					"Rèn luyện thể lực và kỹ năng phối hợp đội nhóm.",
+					"Thứ ba, thứ năm · Sân bóng",
+					"Sân bóng"
+			);
+			seedClub(
+					clubRepository,
+					"CLB Mỹ thuật",
+					"Vẽ, thủ công và sáng tạo sản phẩm nghệ thuật.",
+					"Thứ tư · Phòng mỹ thuật",
+					"Phòng mỹ thuật"
+			);
+			seedClub(
+					clubRepository,
+					"CLB Robotics",
+					"Lắp ráp robot, lập trình cảm biến và thi đấu STEM.",
+					"Thứ sáu · Phòng STEM",
+					"Phòng STEM"
+			);
+			seedClub(
+					clubRepository,
+					"CLB Âm nhạc",
+					"Hát, nhạc cụ và biểu diễn trong sự kiện trường.",
+					"Thứ hai · Phòng năng khiếu",
+					"Phòng năng khiếu"
+			);
+			seedClubRegistration(clubRegistrationRepository, student, footballClub);
 		};
 	}
 
@@ -363,6 +399,36 @@ public class DemoSchoolDataSeeder {
 						application.reject("Demo rejection", atSchoolTime(2026, 7, 1, 8, 0));
 					}
 					return applicationRepository.save(application);
+				});
+	}
+
+	private SchoolClub seedClub(
+			SchoolClubRepository clubRepository,
+			String name,
+			String description,
+			String scheduleText,
+			String location
+	) {
+		return clubRepository.findByName(name)
+				.orElseGet(() -> clubRepository.save(new SchoolClub(
+						name,
+						description,
+						scheduleText,
+						location,
+						true
+				)));
+	}
+
+	private void seedClubRegistration(
+			ClubRegistrationRepository registrationRepository,
+			Student student,
+			SchoolClub club
+	) {
+		registrationRepository.findByStudentAndClub(student, club)
+				.orElseGet(() -> {
+					var registration = new ClubRegistration(student, club);
+					registration.approve(atSchoolTime(2026, 7, 1, 8, 0));
+					return registrationRepository.save(registration);
 				});
 	}
 

@@ -9,6 +9,9 @@ import 'package:myfschoolse1913/vn/edu/fpt/ui/features/auth/views/forgot_passwor
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/auth/views/login_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/auth/views/reset_password_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/auth/views/verify_otp_page.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/domain/models/student_clubs.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/ui/features/clubs/views/club_registration_page.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/ui/features/clubs/views/clubs_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/events/views/events_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/grades/views/semester_grades_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/home/views/home_page.dart';
@@ -25,6 +28,8 @@ abstract final class AppRoutes {
   static const events = '/events';
   static const applications = '/applications';
   static const createApplication = '/applications/create';
+  static const clubs = '/clubs';
+  static const clubRegistration = '/clubs/register';
   static const account = '/account';
 }
 
@@ -55,6 +60,8 @@ GoRouter createAppRouter({required AppSessionController sessionController}) {
           path == AppRoutes.events ||
           path == AppRoutes.applications ||
           path == AppRoutes.createApplication ||
+          path == AppRoutes.clubs ||
+          path == AppRoutes.clubRegistration ||
           path == AppRoutes.account;
 
       return switch (sessionController.status) {
@@ -195,6 +202,41 @@ GoRouter createAppRouter({required AppSessionController sessionController}) {
           return NoTransitionPage(
             child: CreateApplicationPage(
               applicationsRepository: services.applicationsRepository,
+              sessionController: services.sessionController,
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.clubs,
+        pageBuilder: (context, state) {
+          final services = AppDependencies.of(context);
+          return NoTransitionPage(
+            child: ClubsPage(
+              clubsRepository: services.clubsRepository,
+              sessionController: services.sessionController,
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.clubRegistration,
+        pageBuilder: (context, state) {
+          final services = AppDependencies.of(context);
+          final club = state.extra;
+          if (club is! StudentClub) {
+            return NoTransitionPage(
+              child: ClubsPage(
+                clubsRepository: services.clubsRepository,
+                sessionController: services.sessionController,
+              ),
+            );
+          }
+
+          return NoTransitionPage(
+            child: ClubRegistrationPage(
+              club: club,
+              clubsRepository: services.clubsRepository,
               sessionController: services.sessionController,
             ),
           );
