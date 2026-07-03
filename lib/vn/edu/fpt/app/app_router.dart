@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/app/app_dependencies.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/app/app_session_controller.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/ui/features/applications/views/applications_page.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/ui/features/applications/views/create_application_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/account/views/account_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/auth/views/forgot_password_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/auth/views/login_page.dart';
@@ -21,6 +23,8 @@ abstract final class AppRoutes {
   static const semesterGrades = '/semester-grades';
   static const schedule = '/schedule';
   static const events = '/events';
+  static const applications = '/applications';
+  static const createApplication = '/applications/create';
   static const account = '/account';
 }
 
@@ -49,6 +53,8 @@ GoRouter createAppRouter({required AppSessionController sessionController}) {
           path == AppRoutes.semesterGrades ||
           path == AppRoutes.schedule ||
           path == AppRoutes.events ||
+          path == AppRoutes.applications ||
+          path == AppRoutes.createApplication ||
           path == AppRoutes.account;
 
       return switch (sessionController.status) {
@@ -165,6 +171,30 @@ GoRouter createAppRouter({required AppSessionController sessionController}) {
           return NoTransitionPage(
             child: EventsPage(
               eventsRepository: services.eventsRepository,
+              sessionController: services.sessionController,
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.applications,
+        pageBuilder: (context, state) {
+          final services = AppDependencies.of(context);
+          return NoTransitionPage(
+            child: ApplicationsPage(
+              applicationsRepository: services.applicationsRepository,
+              sessionController: services.sessionController,
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.createApplication,
+        pageBuilder: (context, state) {
+          final services = AppDependencies.of(context);
+          return NoTransitionPage(
+            child: CreateApplicationPage(
+              applicationsRepository: services.applicationsRepository,
               sessionController: services.sessionController,
             ),
           );

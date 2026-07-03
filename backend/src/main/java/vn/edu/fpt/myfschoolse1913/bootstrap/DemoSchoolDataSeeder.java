@@ -11,6 +11,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import vn.edu.fpt.myfschoolse1913.application.StudentApplication;
+import vn.edu.fpt.myfschoolse1913.application.StudentApplicationRepository;
+import vn.edu.fpt.myfschoolse1913.application.StudentApplicationStatus;
+import vn.edu.fpt.myfschoolse1913.application.StudentApplicationType;
 import vn.edu.fpt.myfschoolse1913.event.SchoolEvent;
 import vn.edu.fpt.myfschoolse1913.event.SchoolEventRepository;
 import vn.edu.fpt.myfschoolse1913.student.AcademicYear;
@@ -45,7 +49,8 @@ public class DemoSchoolDataSeeder {
 			SubjectRepository subjectRepository,
 			SemesterSubjectGradeRepository gradeRepository,
 			ClassTimetableSlotRepository timetableSlotRepository,
-			SchoolEventRepository eventRepository
+			SchoolEventRepository eventRepository,
+			StudentApplicationRepository applicationRepository
 	) {
 		return (args) -> {
 			var user = userRepository.findByPhoneNumber("0900000001")
@@ -152,6 +157,37 @@ public class DemoSchoolDataSeeder {
 					"Hội trường",
 					atSchoolTime(2026, 7, 25, 8, 0),
 					atSchoolTime(2026, 7, 25, 9, 30)
+			);
+
+			seedApplication(
+					applicationRepository,
+					student,
+					StudentApplicationType.ABSENCE,
+					StudentApplicationStatus.PENDING,
+					LocalDate.of(2026, 7, 1),
+					null,
+					"Em bị ốm cần nghỉ học một ngày",
+					"Gia đình sẽ bổ sung giấy xác nhận nếu nhà trường yêu cầu."
+			);
+			seedApplication(
+					applicationRepository,
+					student,
+					StudentApplicationType.EARLY_PICKUP,
+					StudentApplicationStatus.APPROVED,
+					LocalDate.of(2026, 7, 3),
+					LocalTime.of(15, 30),
+					"Gia đình có lịch khám sức khỏe",
+					"Xin phép cho học sinh được ra về lúc 15:30."
+			);
+			seedApplication(
+					applicationRepository,
+					student,
+					StudentApplicationType.MEAL_REGISTRATION,
+					StudentApplicationStatus.APPROVED,
+					LocalDate.of(2026, 7, 1),
+					null,
+					"Đăng ký suất ăn tháng 7",
+					"Cập nhật thực đơn tháng 7"
 			);
 		};
 	}
@@ -298,6 +334,36 @@ public class DemoSchoolDataSeeder {
 						endsAt,
 						true
 				)));
+	}
+
+	private void seedApplication(
+			StudentApplicationRepository applicationRepository,
+			Student student,
+			StudentApplicationType type,
+			StudentApplicationStatus status,
+			LocalDate targetDate,
+			LocalTime requestedTime,
+			String reason,
+			String details
+	) {
+		applicationRepository.findByStudentAndTypeAndTargetDateAndReason(student, type, targetDate, reason)
+				.orElseGet(() -> {
+					var application = new StudentApplication(
+							student,
+							type,
+							targetDate,
+							requestedTime,
+							reason,
+							details
+					);
+					if (status == StudentApplicationStatus.APPROVED) {
+						application.approve("Demo approval", atSchoolTime(2026, 7, 1, 8, 0));
+					}
+					if (status == StudentApplicationStatus.REJECTED) {
+						application.reject("Demo rejection", atSchoolTime(2026, 7, 1, 8, 0));
+					}
+					return applicationRepository.save(application);
+				});
 	}
 
 	private Instant atSchoolTime(int year, int month, int day, int hour, int minute) {
