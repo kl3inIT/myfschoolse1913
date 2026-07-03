@@ -20,9 +20,13 @@ class SecureTokenStorage implements TokenStorage {
   static const _expiresAtKey = 'auth.expiresAt';
 
   final FlutterSecureStorage _storage;
+  String? _accessToken;
+  String? _refreshToken;
 
   @override
   Future<void> saveSession(AuthSession session) async {
+    _accessToken = session.accessToken;
+    _refreshToken = session.refreshToken;
     await Future.wait([
       _storage.write(key: _accessTokenKey, value: session.accessToken),
       _storage.write(key: _refreshTokenKey, value: session.refreshToken),
@@ -34,17 +38,29 @@ class SecureTokenStorage implements TokenStorage {
   }
 
   @override
-  Future<String?> readAccessToken() {
-    return _storage.read(key: _accessTokenKey);
+  Future<String?> readAccessToken() async {
+    if (_accessToken != null) {
+      return _accessToken;
+    }
+
+    _accessToken = await _storage.read(key: _accessTokenKey);
+    return _accessToken;
   }
 
   @override
-  Future<String?> readRefreshToken() {
-    return _storage.read(key: _refreshTokenKey);
+  Future<String?> readRefreshToken() async {
+    if (_refreshToken != null) {
+      return _refreshToken;
+    }
+
+    _refreshToken = await _storage.read(key: _refreshTokenKey);
+    return _refreshToken;
   }
 
   @override
   Future<void> clear() async {
+    _accessToken = null;
+    _refreshToken = null;
     await Future.wait([
       _storage.delete(key: _accessTokenKey),
       _storage.delete(key: _refreshTokenKey),
