@@ -218,7 +218,8 @@ The current Flutter app is the FPT Schools login flow, built with layered MVVM.
 - For student mobile scope:
   - Home greeting should refer to `Học sinh`, not `Phụ huynh`.
   - Keep student self-service features first: semester grades, schedule,
-    events, applications, clubs, messages, and account.
+    events, applications, clubs, notifications, and account.
+  - Do not add a chat/messages flow unless the user explicitly expands scope.
   - Avoid parent-only flows such as selecting a child, parent approvals, tuition
     payment, or parent-teacher communication unless parent scope is explicitly
     added.

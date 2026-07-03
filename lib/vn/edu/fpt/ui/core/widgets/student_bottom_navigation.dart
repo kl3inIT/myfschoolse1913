@@ -18,7 +18,11 @@ class StudentBottomNavigation extends StatelessWidget {
       Icons.calendar_month,
       'Lịch',
     ),
-    _StudentNavItem(Icons.chat_bubble_outline, Icons.chat_bubble, 'Tin nhắn'),
+    _StudentNavItem(
+      Icons.notifications_outlined,
+      Icons.notifications,
+      'Thông báo',
+    ),
     _StudentNavItem(Icons.person_outline, Icons.person, 'Tài khoản'),
   ];
 

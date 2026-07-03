@@ -21,6 +21,10 @@ import vn.edu.fpt.myfschoolse1913.application.StudentApplicationStatus;
 import vn.edu.fpt.myfschoolse1913.application.StudentApplicationType;
 import vn.edu.fpt.myfschoolse1913.event.SchoolEvent;
 import vn.edu.fpt.myfschoolse1913.event.SchoolEventRepository;
+import vn.edu.fpt.myfschoolse1913.notification.SchoolNotification;
+import vn.edu.fpt.myfschoolse1913.notification.SchoolNotificationAudience;
+import vn.edu.fpt.myfschoolse1913.notification.SchoolNotificationCategory;
+import vn.edu.fpt.myfschoolse1913.notification.SchoolNotificationRepository;
 import vn.edu.fpt.myfschoolse1913.student.AcademicYear;
 import vn.edu.fpt.myfschoolse1913.student.AcademicYearRepository;
 import vn.edu.fpt.myfschoolse1913.student.ClassTimetableSlot;
@@ -54,6 +58,7 @@ public class DemoSchoolDataSeeder {
 			SemesterSubjectGradeRepository gradeRepository,
 			ClassTimetableSlotRepository timetableSlotRepository,
 			SchoolEventRepository eventRepository,
+			SchoolNotificationRepository notificationRepository,
 			StudentApplicationRepository applicationRepository,
 			SchoolClubRepository clubRepository,
 			ClubRegistrationRepository clubRegistrationRepository
@@ -163,6 +168,31 @@ public class DemoSchoolDataSeeder {
 					"Hội trường",
 					atSchoolTime(2026, 7, 25, 8, 0),
 					atSchoolTime(2026, 7, 25, 9, 30)
+			);
+
+			seedNotification(
+					notificationRepository,
+					"Lịch sinh hoạt đầu tuần",
+					"Học sinh khối 10 tập trung tại hội trường lúc 7:45 thứ hai để nghe phổ biến kế hoạch học tập.",
+					SchoolNotificationCategory.ACADEMIC,
+					atSchoolTime(2026, 7, 6, 7, 0),
+					true
+			);
+			seedNotification(
+					notificationRepository,
+					"Đăng ký câu lạc bộ tháng 7",
+					"Cổng đăng ký CLB mở từ ngày 01 đến 05 hằng tháng. Học sinh theo dõi lịch sinh hoạt trước khi đăng ký.",
+					SchoolNotificationCategory.EVENT,
+					atSchoolTime(2026, 7, 1, 8, 0),
+					false
+			);
+			seedNotification(
+					notificationRepository,
+					"Cập nhật dịch vụ bán trú",
+					"Nhà trường cập nhật thực đơn và thời gian nghỉ trưa trên hệ thống MyFPTSchools.",
+					SchoolNotificationCategory.SERVICE,
+					atSchoolTime(2026, 6, 30, 16, 0),
+					false
 			);
 
 			seedApplication(
@@ -368,6 +398,26 @@ public class DemoSchoolDataSeeder {
 						location,
 						startsAt,
 						endsAt,
+						true
+				)));
+	}
+
+	private void seedNotification(
+			SchoolNotificationRepository notificationRepository,
+			String title,
+			String body,
+			SchoolNotificationCategory category,
+			Instant publishedAt,
+			boolean pinned
+	) {
+		notificationRepository.findByTitleAndPublishedAt(title, publishedAt)
+				.orElseGet(() -> notificationRepository.save(new SchoolNotification(
+						title,
+						body,
+						category,
+						SchoolNotificationAudience.HIGH_SCHOOL,
+						publishedAt,
+						pinned,
 						true
 				)));
 	}

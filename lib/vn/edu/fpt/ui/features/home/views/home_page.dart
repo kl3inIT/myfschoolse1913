@@ -103,6 +103,9 @@ class _HomePageState extends State<HomePage> {
       case 1:
         context.go(AppRoutes.schedule);
         break;
+      case 2:
+        context.go(AppRoutes.notifications);
+        break;
       case 3:
         context.go(AppRoutes.account);
         break;
@@ -140,7 +143,9 @@ class _DashboardHeader extends StatelessWidget {
           ),
           IconButton(
             tooltip: 'Thông báo',
-            onPressed: () {},
+            onPressed: () {
+              context.go(AppRoutes.notifications);
+            },
             visualDensity: VisualDensity.compact,
             icon: const Icon(Icons.notifications, color: Colors.white),
           ),

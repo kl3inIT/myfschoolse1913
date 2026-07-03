@@ -15,6 +15,7 @@ import 'package:myfschoolse1913/vn/edu/fpt/ui/features/clubs/views/clubs_page.da
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/events/views/events_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/grades/views/semester_grades_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/home/views/home_page.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/ui/features/notifications/views/notifications_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/schedule/views/schedule_page.dart';
 
 abstract final class AppRoutes {
@@ -30,6 +31,7 @@ abstract final class AppRoutes {
   static const createApplication = '/applications/create';
   static const clubs = '/clubs';
   static const clubRegistration = '/clubs/register';
+  static const notifications = '/notifications';
   static const account = '/account';
 }
 
@@ -62,6 +64,7 @@ GoRouter createAppRouter({required AppSessionController sessionController}) {
           path == AppRoutes.createApplication ||
           path == AppRoutes.clubs ||
           path == AppRoutes.clubRegistration ||
+          path == AppRoutes.notifications ||
           path == AppRoutes.account;
 
       return switch (sessionController.status) {
@@ -249,6 +252,18 @@ GoRouter createAppRouter({required AppSessionController sessionController}) {
           return NoTransitionPage(
             child: AccountPage(
               userRepository: services.userRepository,
+              sessionController: services.sessionController,
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.notifications,
+        pageBuilder: (context, state) {
+          final services = AppDependencies.of(context);
+          return NoTransitionPage(
+            child: NotificationsPage(
+              notificationsRepository: services.notificationsRepository,
               sessionController: services.sessionController,
             ),
           );

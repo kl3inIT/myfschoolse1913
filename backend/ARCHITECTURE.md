@@ -23,7 +23,7 @@ schedule
 events
 applications
 clubs
-messages
+notifications
 account
 ```
 

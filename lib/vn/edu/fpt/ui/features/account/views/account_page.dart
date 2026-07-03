@@ -94,6 +94,9 @@ class _AccountPageState extends State<AccountPage> {
       case 1:
         context.go(AppRoutes.schedule);
         break;
+      case 2:
+        context.go(AppRoutes.notifications);
+        break;
       case 3:
         context.go(AppRoutes.account);
         break;
