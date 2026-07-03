@@ -233,6 +233,7 @@ public class DemoSchoolDataSeeder {
 					false
 			);
 
+			applicationRepository.deleteByStudent(student);
 			seedApplication(
 					applicationRepository,
 					student,
@@ -246,51 +247,75 @@ public class DemoSchoolDataSeeder {
 			seedApplication(
 					applicationRepository,
 					student,
-					StudentApplicationType.EARLY_PICKUP,
+					StudentApplicationType.EARLY_LEAVE,
 					StudentApplicationStatus.APPROVED,
 					LocalDate.of(2026, 7, 3),
 					LocalTime.of(15, 30),
-					"Gia đình có lịch khám sức khỏe",
-					"Xin phép cho học sinh được ra về lúc 15:30."
+					"Em có lịch khám sức khỏe",
+					"Xin phép được ra về lúc 15:30 sau tiết học buổi chiều."
 			);
 			seedApplication(
 					applicationRepository,
 					student,
-					StudentApplicationType.MEAL_REGISTRATION,
+					StudentApplicationType.LATE_ARRIVAL,
+					StudentApplicationStatus.PENDING,
+					LocalDate.of(2026, 7, 6),
+					LocalTime.of(8, 30),
+					"Em có lịch hẹn y tế buổi sáng",
+					"Xin phép vào lớp từ tiết 2."
+			);
+			seedApplication(
+					applicationRepository,
+					student,
+					StudentApplicationType.DOCUMENT_REQUEST,
 					StudentApplicationStatus.APPROVED,
-					LocalDate.of(2026, 7, 1),
+					LocalDate.of(2026, 7, 4),
 					null,
-					"Đăng ký suất ăn tháng 7",
-					"Cập nhật thực đơn tháng 7"
+					"Em cần giấy xác nhận học sinh",
+					"Dùng để bổ sung hồ sơ tham gia kỳ thi học thuật."
 			);
 
 			var footballClub = seedClub(
 					clubRepository,
 					"CLB Bóng đá",
-					"Rèn luyện thể lực và kỹ năng phối hợp đội nhóm.",
-					"Thứ ba, thứ năm · Sân bóng",
+					"Rèn luyện thể lực, chiến thuật thi đấu và tinh thần đội nhóm cho học sinh THPT.",
+					"Thứ ba, thứ năm · 16:10-17:30",
 					"Sân bóng"
 			);
 			seedClub(
 					clubRepository,
+					"CLB Tranh biện tiếng Anh",
+					"Luyện phản biện, thuyết trình và tư duy lập luận bằng tiếng Anh.",
+					"Thứ tư · 16:10-17:20",
+					"Phòng 10A1"
+			);
+			seedClub(
+					clubRepository,
 					"CLB Mỹ thuật",
-					"Vẽ, thủ công và sáng tạo sản phẩm nghệ thuật.",
-					"Thứ tư · Phòng mỹ thuật",
+					"Thiết kế poster, minh họa và chuẩn bị sản phẩm sáng tạo cho sự kiện trường.",
+					"Thứ tư · 16:10-17:20",
 					"Phòng mỹ thuật"
 			);
 			seedClub(
 					clubRepository,
 					"CLB Robotics",
-					"Lắp ráp robot, lập trình cảm biến và thi đấu STEM.",
-					"Thứ sáu · Phòng STEM",
+					"Lắp ráp robot, lập trình cảm biến và chuẩn bị cho các sân chơi STEM.",
+					"Thứ sáu · 16:10-17:30",
 					"Phòng STEM"
 			);
 			seedClub(
 					clubRepository,
 					"CLB Âm nhạc",
-					"Hát, nhạc cụ và biểu diễn trong sự kiện trường.",
-					"Thứ hai · Phòng năng khiếu",
+					"Tập luyện vocal, nhạc cụ và biểu diễn trong sự kiện trường.",
+					"Thứ hai · 16:10-17:20",
 					"Phòng năng khiếu"
+			);
+			seedClub(
+					clubRepository,
+					"CLB Truyền thông",
+					"Sản xuất nội dung, chụp ảnh, quay dựng video và truyền thông sự kiện trường.",
+					"Thứ năm · 16:10-17:20",
+					"Phòng Studio"
 			);
 			seedClubRegistration(clubRegistrationRepository, student, footballClub);
 		};
@@ -526,6 +551,10 @@ public class DemoSchoolDataSeeder {
 			String location
 	) {
 		return clubRepository.findByName(name)
+				.map((club) -> {
+					club.updateDetails(description, scheduleText, location, true);
+					return clubRepository.save(club);
+				})
 				.orElseGet(() -> clubRepository.save(new SchoolClub(
 						name,
 						description,

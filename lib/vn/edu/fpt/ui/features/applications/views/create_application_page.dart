@@ -59,7 +59,7 @@ class _CreateApplicationPageState extends State<CreateApplicationPage> {
     final selected = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
-      helpText: 'Chọn giờ đón',
+      helpText: 'Chọn giờ áp dụng',
       cancelText: 'Hủy',
       confirmText: 'Chọn',
     );
@@ -144,12 +144,11 @@ class _CreateApplicationPageState extends State<CreateApplicationPage> {
                                   : _formatDate(state.targetDate!),
                               onTap: state.isSubmitting ? null : _pickDate,
                             ),
-                            if (state.type ==
-                                StudentApplicationType.earlyPickup) ...[
+                            if (state.type.requiresTime) ...[
                               const SizedBox(height: 16),
                               _PickerField(
                                 icon: Icons.schedule_outlined,
-                                label: 'Giờ đón',
+                                label: 'Giờ áp dụng',
                                 value: state.requestedTime ?? 'Chọn giờ',
                                 onTap: state.isSubmitting ? null : _pickTime,
                               ),

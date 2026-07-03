@@ -23,7 +23,7 @@ class CreateApplicationViewModel extends ChangeNotifier {
   void setType(StudentApplicationType type) {
     _state = _state.copyWith(
       type: type,
-      clearRequestedTime: type != StudentApplicationType.earlyPickup,
+      clearRequestedTime: !type.requiresTime,
       clearErrorMessage: true,
     );
     notifyListeners();
@@ -56,9 +56,8 @@ class CreateApplicationViewModel extends ChangeNotifier {
       return CreateApplicationResult.failure;
     }
 
-    if (_state.type == StudentApplicationType.earlyPickup &&
-        _state.requestedTime == null) {
-      _state = _state.copyWith(errorMessage: 'Vui lòng chọn giờ đón');
+    if (_state.type.requiresTime && _state.requestedTime == null) {
+      _state = _state.copyWith(errorMessage: 'Vui lòng chọn giờ áp dụng');
       notifyListeners();
       return CreateApplicationResult.failure;
     }

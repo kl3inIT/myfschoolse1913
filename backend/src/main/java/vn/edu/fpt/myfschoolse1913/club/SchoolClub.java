@@ -60,4 +60,11 @@ public class SchoolClub {
 	public String getLocation() {
 		return location;
 	}
+
+	public void updateDetails(String description, String scheduleText, String location, boolean active) {
+		this.description = description;
+		this.scheduleText = scheduleText;
+		this.location = location;
+		this.active = active;
+	}
 }

@@ -30,18 +30,26 @@ class StudentApplication {
 
 enum StudentApplicationType {
   absence('ABSENCE', 'Nghỉ học'),
-  earlyPickup('EARLY_PICKUP', 'Đón sớm'),
-  mealRegistration('MEAL_REGISTRATION', 'Suất ăn');
+  lateArrival('LATE_ARRIVAL', 'Vào muộn'),
+  earlyLeave('EARLY_LEAVE', 'Về sớm'),
+  documentRequest('DOCUMENT_REQUEST', 'Xác nhận giấy tờ');
 
   const StudentApplicationType(this.wireValue, this.label);
 
   final String wireValue;
   final String label;
 
+  bool get requiresTime {
+    return this == StudentApplicationType.lateArrival ||
+        this == StudentApplicationType.earlyLeave;
+  }
+
   static StudentApplicationType fromWireValue(String value) {
     return switch (value) {
-      'EARLY_PICKUP' => StudentApplicationType.earlyPickup,
-      'MEAL_REGISTRATION' => StudentApplicationType.mealRegistration,
+      'LATE_ARRIVAL' => StudentApplicationType.lateArrival,
+      'EARLY_LEAVE' || 'EARLY_PICKUP' => StudentApplicationType.earlyLeave,
+      'DOCUMENT_REQUEST' ||
+      'MEAL_REGISTRATION' => StudentApplicationType.documentRequest,
       _ => StudentApplicationType.absence,
     };
   }

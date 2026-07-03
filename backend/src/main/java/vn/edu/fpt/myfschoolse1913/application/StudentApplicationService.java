@@ -72,24 +72,35 @@ public class StudentApplicationService {
 	private String title(StudentApplicationType type) {
 		return switch (type) {
 			case ABSENCE -> "Đơn xin nghỉ học";
-			case EARLY_PICKUP -> "Đơn đón về sớm";
-			case MEAL_REGISTRATION -> "Đăng ký suất ăn";
+			case LATE_ARRIVAL -> "Đơn xin vào muộn";
+			case EARLY_LEAVE, EARLY_PICKUP -> "Đơn xin về sớm";
+			case DOCUMENT_REQUEST -> "Đơn xin xác nhận giấy tờ";
+			case MEAL_REGISTRATION -> "Cập nhật dịch vụ ăn trưa";
 		};
 	}
 
 	private String summary(StudentApplication application) {
 		return switch (application.getType()) {
 			case ABSENCE -> "Nghỉ ngày " + application.getTargetDate().format(DATE_FORMATTER);
-			case EARLY_PICKUP -> earlyPickupSummary(application);
+			case LATE_ARRIVAL -> timeBasedSummary(application, "Vào muộn");
+			case EARLY_LEAVE, EARLY_PICKUP -> timeBasedSummary(application, "Về sớm");
+			case DOCUMENT_REQUEST -> documentSummary(application);
 			case MEAL_REGISTRATION -> mealSummary(application);
 		};
 	}
 
-	private String earlyPickupSummary(StudentApplication application) {
+	private String timeBasedSummary(StudentApplication application, String prefix) {
 		var time = application.getRequestedTime() == null
 				? ""
 				: application.getRequestedTime().format(TIME_FORMATTER) + " ";
-		return time + "ngày " + application.getTargetDate().format(DATE_FORMATTER);
+		return prefix + " " + time + "ngày " + application.getTargetDate().format(DATE_FORMATTER);
+	}
+
+	private String documentSummary(StudentApplication application) {
+		if (application.getDetails() == null || application.getDetails().isBlank()) {
+			return "Yêu cầu xử lý từ ngày " + application.getTargetDate().format(DATE_FORMATTER);
+		}
+		return application.getDetails();
 	}
 
 	private String mealSummary(StudentApplication application) {

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.transaction.annotation.Transactional;
 import vn.edu.fpt.myfschoolse1913.student.Student;
 
 public interface StudentApplicationRepository extends JpaRepository<StudentApplication, UUID> {
@@ -22,4 +23,7 @@ public interface StudentApplicationRepository extends JpaRepository<StudentAppli
 			LocalDate targetDate,
 			String reason
 	);
+
+	@Transactional
+	void deleteByStudent(Student student);
 }
