@@ -17,12 +17,22 @@ public class DemoUserSeeder {
 	@Bean
 	@Order(0)
 	ApplicationRunner seedDemoStudent(AppUserRepository userRepository, PasswordEncoder passwordEncoder) {
-		return (args) -> userRepository.findByPhoneNumber("0900000001")
-				.orElseGet(() -> userRepository.save(new AppUser(
-						"0900000001",
-						passwordEncoder.encode("Password123"),
-						"Nguyễn Minh Anh",
-						UserRole.STUDENT
-				)));
+		return (args) -> {
+			userRepository.findByPhoneNumber("0900000000")
+					.orElseGet(() -> userRepository.save(new AppUser(
+							"0900000000",
+							passwordEncoder.encode("Password123"),
+							"Quản trị viên",
+							UserRole.ADMIN
+					)));
+
+			userRepository.findByPhoneNumber("0900000001")
+					.orElseGet(() -> userRepository.save(new AppUser(
+							"0900000001",
+							passwordEncoder.encode("Password123"),
+							"Nguyễn Minh Anh",
+							UserRole.STUDENT
+					)));
+		};
 	}
 }

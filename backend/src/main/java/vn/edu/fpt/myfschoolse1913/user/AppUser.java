@@ -74,6 +74,11 @@ public class AppUser {
 		return enabled;
 	}
 
+	public void updateFullName(String fullName) {
+		this.fullName = fullName;
+		this.updatedAt = Instant.now();
+	}
+
 	public void updatePasswordHash(String passwordHash) {
 		this.passwordHash = passwordHash;
 		this.updatedAt = Instant.now();

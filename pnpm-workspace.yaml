@@ -1,0 +1,9 @@
+packages:
+  - admin-web
+
+sharedWorkspaceLockfile: false
+
+minimumReleaseAgeExclude:
+  - typescript@7.0.2
+  - '@typescript/*'
+  - vite@8.1.4

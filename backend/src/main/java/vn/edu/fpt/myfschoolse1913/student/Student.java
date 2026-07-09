@@ -63,12 +63,23 @@ public class Student {
 		return schoolClass;
 	}
 
+	public String getStudentCode() {
+		return studentCode;
+	}
+
 	public String getStatus() {
 		return status;
 	}
 
 	public void updateSchoolClass(SchoolClass schoolClass) {
 		this.schoolClass = schoolClass;
+		this.updatedAt = Instant.now();
+	}
+
+	public void updateEnrollment(SchoolClass schoolClass, String studentCode, String status) {
+		this.schoolClass = schoolClass;
+		this.studentCode = studentCode;
+		this.status = status;
 		this.updatedAt = Instant.now();
 	}
 }
