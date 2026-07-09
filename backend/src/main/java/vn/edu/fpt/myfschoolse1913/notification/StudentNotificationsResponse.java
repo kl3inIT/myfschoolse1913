@@ -14,7 +14,8 @@ public record StudentNotificationsResponse(
 			String body,
 			String category,
 			Instant publishedAt,
-			boolean pinned
+			boolean pinned,
+			boolean read
 	) {
 	}
 }

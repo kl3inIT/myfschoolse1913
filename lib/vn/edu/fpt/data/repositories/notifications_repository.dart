@@ -22,4 +22,20 @@ class NotificationsRepository {
       );
     }
   }
+
+  Future<Result<StudentNotificationDetail>> getNotification(String id) async {
+    try {
+      final dto = await _notificationsApiService.getNotification(id);
+      return Success(dto.toDomain());
+    } on ApiException catch (exception) {
+      return Failure(AppFailure(exception.message, cause: exception));
+    } catch (exception) {
+      return Failure(
+        AppFailure(
+          'Không thể tải chi tiết thông báo lúc này',
+          cause: exception,
+        ),
+      );
+    }
+  }
 }

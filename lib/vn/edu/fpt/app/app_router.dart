@@ -15,6 +15,7 @@ import 'package:myfschoolse1913/vn/edu/fpt/ui/features/clubs/views/clubs_page.da
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/events/views/events_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/grades/views/semester_grades_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/home/views/home_page.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/ui/features/notifications/views/notification_detail_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/notifications/views/notifications_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/schedule/views/schedule_page.dart';
 
@@ -32,7 +33,12 @@ abstract final class AppRoutes {
   static const clubs = '/clubs';
   static const clubRegistration = '/clubs/register';
   static const notifications = '/notifications';
+  static const notificationDetail = '/notifications/:notificationId';
   static const account = '/account';
+
+  static String notificationDetailPath(String notificationId) {
+    return '/notifications/$notificationId';
+  }
 }
 
 class PasswordResetOtpRouteData {
@@ -65,6 +71,7 @@ GoRouter createAppRouter({required AppSessionController sessionController}) {
           path == AppRoutes.clubs ||
           path == AppRoutes.clubRegistration ||
           path == AppRoutes.notifications ||
+          path.startsWith('${AppRoutes.notifications}/') ||
           path == AppRoutes.account;
 
       return switch (sessionController.status) {
@@ -263,6 +270,30 @@ GoRouter createAppRouter({required AppSessionController sessionController}) {
           final services = AppDependencies.of(context);
           return NoTransitionPage(
             child: NotificationsPage(
+              notificationsRepository: services.notificationsRepository,
+              sessionController: services.sessionController,
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.notificationDetail,
+        pageBuilder: (context, state) {
+          final services = AppDependencies.of(context);
+          final notificationId = state.pathParameters['notificationId'];
+
+          if (notificationId == null || notificationId.isEmpty) {
+            return NoTransitionPage(
+              child: NotificationsPage(
+                notificationsRepository: services.notificationsRepository,
+                sessionController: services.sessionController,
+              ),
+            );
+          }
+
+          return NoTransitionPage(
+            child: NotificationDetailPage(
+              notificationId: notificationId,
               notificationsRepository: services.notificationsRepository,
               sessionController: services.sessionController,
             ),

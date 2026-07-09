@@ -7,7 +7,7 @@ User-facing app text stays Vietnamese, but screen and file names stay English.
 
 ```mermaid
 flowchart LR
-    User[Parent user] --> View[LoginPage / Flutter View]
+    User[Student user] --> View[LoginPage / Flutter View]
     View --> VM[LoginViewModel]
     VM --> Repo[AuthRepository]
     Repo --> Service[AuthApiService]
@@ -209,4 +209,3 @@ Recommended order:
 8. `AuthRepository`: DTO to domain mapping and token storage.
 9. `ApiClient`: async HTTP and error handling.
 10. Tests for ViewModel and Repository.
-

@@ -7,6 +7,7 @@ import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/notifications_repos
 import 'package:myfschoolse1913/vn/edu/fpt/domain/models/student_notifications.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/core/widgets/student_bottom_navigation.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/notifications/view_models/notifications_view_model.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/ui/features/notifications/widgets/notification_chips.dart';
 
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage({
@@ -54,6 +55,13 @@ class _NotificationsPageState extends State<NotificationsPage> {
     }
   }
 
+  Future<void> _openNotification(String notificationId) async {
+    await context.push(AppRoutes.notificationDetailPath(notificationId));
+    if (mounted) {
+      await _loadNotifications();
+    }
+  }
+
   void _onDestinationSelected(int index) {
     switch (index) {
       case 0:
@@ -95,6 +103,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                           isLoading: state.isLoading,
                           errorMessage: state.errorMessage,
                           onRetry: _loadNotifications,
+                          onNotificationSelected: _openNotification,
                         ),
                       ),
                       StudentBottomNavigation(
@@ -142,12 +151,14 @@ class _NotificationsBody extends StatelessWidget {
     required this.isLoading,
     required this.errorMessage,
     required this.onRetry,
+    required this.onNotificationSelected,
   });
 
   final StudentNotifications? notifications;
   final bool isLoading;
   final String? errorMessage;
   final Future<void> Function() onRetry;
+  final Future<void> Function(String notificationId) onNotificationSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -172,7 +183,12 @@ class _NotificationsBody extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
         children: [
           for (final notification in loadedNotifications.notifications) ...[
-            _NotificationCard(notification: notification),
+            _NotificationCard(
+              notification: notification,
+              onTap: () {
+                onNotificationSelected(notification.id);
+              },
+            ),
             const SizedBox(height: 12),
           ],
         ],
@@ -182,112 +198,103 @@ class _NotificationsBody extends StatelessWidget {
 }
 
 class _NotificationCard extends StatelessWidget {
-  const _NotificationCard({required this.notification});
+  const _NotificationCard({required this.notification, required this.onTap});
 
   final StudentNotification notification;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: notification.pinned ? const Color(0xFFFFF7ED) : Colors.white,
+    final cardColor = notification.pinned
+        ? const Color(0xFFFFF7ED)
+        : Colors.white;
+    final borderColor = notification.pinned
+        ? const Color(0xFFFED7AA)
+        : FptColors.border;
+
+    return Material(
+      color: cardColor,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: notification.pinned
-              ? const Color(0xFFFED7AA)
-              : FptColors.border,
-        ),
+        side: BorderSide(color: borderColor),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _CategoryChip(category: notification.category),
-              if (notification.pinned) ...[
-                const SizedBox(width: 8),
-                const _PinnedChip(),
-              ],
-              const Spacer(),
+              Row(
+                children: [
+                  NotificationCategoryChip(category: notification.category),
+                  if (notification.pinned) ...[
+                    const SizedBox(width: 8),
+                    const PinnedNotificationChip(),
+                  ],
+                  const Spacer(),
+                  Text(
+                    formatNotificationDate(notification.publishedAt),
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: FptColors.textSecondary,
+                      height: 1.2,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (!notification.read) ...[
+                    Container(
+                      width: 8,
+                      height: 8,
+                      margin: const EdgeInsets.only(top: 5, right: 8),
+                      decoration: const BoxDecoration(
+                        color: FptColors.orangeDeep,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ],
+                  Expanded(
+                    child: Text(
+                      notification.title,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: FptColors.textPrimary,
+                        fontWeight: notification.read
+                            ? FontWeight.w700
+                            : FontWeight.w900,
+                        height: 1.2,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
               Text(
-                _formatDate(notification.publishedAt),
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                notification.body,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: FptColors.textSecondary,
-                  height: 1.2,
+                  height: 1.45,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Icon(
+                  Icons.chevron_right,
+                  color: notification.read
+                      ? FptColors.textSecondary
+                      : FptColors.orangeDeep,
+                  size: 22,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            notification.title,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: FptColors.textPrimary,
-              fontWeight: FontWeight.w800,
-              height: 1.2,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            notification.body,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: FptColors.textSecondary,
-              height: 1.45,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CategoryChip extends StatelessWidget {
-  const _CategoryChip({required this.category});
-
-  final StudentNotificationCategory category;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 24,
-      alignment: Alignment.center,
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFFD1FAE5),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        category.label,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: const Color(0xFF047857),
-          fontWeight: FontWeight.w800,
-          height: 1.0,
-        ),
-      ),
-    );
-  }
-}
-
-class _PinnedChip extends StatelessWidget {
-  const _PinnedChip();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 24,
-      alignment: Alignment.center,
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFEDD5),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        'Ghim',
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: FptColors.orangeDeep,
-          fontWeight: FontWeight.w800,
-          height: 1.0,
         ),
       ),
     );
@@ -347,10 +354,4 @@ class _NotificationsError extends StatelessWidget {
       ),
     );
   }
-}
-
-String _formatDate(DateTime date) {
-  final day = date.day.toString().padLeft(2, '0');
-  final month = date.month.toString().padLeft(2, '0');
-  return '$day/$month/${date.year}';
 }

@@ -12,4 +12,11 @@ class NotificationsApiService {
     );
     return StudentNotificationsDto.fromJson(json);
   }
+
+  Future<StudentNotificationDetailDto> getNotification(String id) async {
+    final json = await _apiClient.getJsonObject(
+      '/api/students/me/notifications/$id',
+    );
+    return StudentNotificationDetailDto.fromJson(json);
+  }
 }

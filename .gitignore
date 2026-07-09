@@ -45,5 +45,6 @@ app.*.map.json
 /android/app/release
 
 # Local test / preview artifacts
+.playwright-cli/
 .playwright-mcp/
 login-*.png

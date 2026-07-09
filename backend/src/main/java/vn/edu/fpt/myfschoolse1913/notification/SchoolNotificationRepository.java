@@ -10,5 +10,7 @@ public interface SchoolNotificationRepository extends JpaRepository<SchoolNotifi
 
 	List<SchoolNotification> findByActiveTrueOrderByPinnedDescPublishedAtDesc();
 
+	Optional<SchoolNotification> findByIdAndActiveTrue(UUID id);
+
 	Optional<SchoolNotification> findByTitleAndPublishedAt(String title, Instant publishedAt);
 }
