@@ -21,13 +21,18 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           flutter-version: 3.44.6
           cache: true
+
+      # Flutter 3.44 defaults to Swift Package Manager, but the committed
+      # ios/ project still integrates plugins via CocoaPods; mixing both
+      # breaks the Xcode build ("sandbox is not in sync with Podfile.lock").
+      - run: flutter config --no-enable-swift-package-manager
 
       - run: flutter pub get
 
@@ -43,7 +48,7 @@ jobs:
           cd build/ios/ipa
           zip -qry MyFSchool-unsigned.ipa Payload
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: MyFSchool-unsigned-ipa
           path: build/ios/ipa/MyFSchool-unsigned.ipa
