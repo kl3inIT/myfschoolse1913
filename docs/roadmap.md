@@ -48,6 +48,5 @@ Admin web MVP completed 2026-07-10 — history in
   surfaces (see `docs/tests/domains/admin-web.md` for the admin gap list).
 - Add end-to-end browser checks for the demo flow.
 - Add docs/screenshots for the teacher review demo path.
-- Fix Android NDK version warning if Android rebuilds become noisy.
 - Assistant hardening: rate limiting/spend cap, integration tests with an LLM
   stub, provider/SSE-parsing unit tests (see `docs/tests/domains/assistant.md`).

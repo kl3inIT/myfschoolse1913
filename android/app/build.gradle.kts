@@ -8,9 +8,9 @@ plugins {
 android {
     namespace = "com.example.myfschoolse1913"
     compileSdk = flutter.compileSdkVersion
-    // NDK not needed: this app has no native (C/C++) code. Re-enable
-    // (ndkVersion = flutter.ndkVersion) if you add a plugin that requires the NDK.
-    // ndkVersion = flutter.ndkVersion
+    // flutter_ai_toolkit pulls plugins with native code (record, camera...),
+    // which require a newer NDK than Flutter's default pin.
+    ndkVersion = "28.2.13676358"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
