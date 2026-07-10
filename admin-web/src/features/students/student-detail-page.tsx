@@ -167,7 +167,7 @@ export function StudentDetailPage() {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-2">
         <Button asChild type="button" variant="outline" size="sm">
-          <Link to="/">
+          <Link to="/students">
             <ArrowLeft className="size-4" />
             Về danh sách
           </Link>
@@ -235,7 +235,7 @@ export function StudentDetailPage() {
             </EmptyDescription>
           </EmptyHeader>
           <Button asChild type="button" variant="outline">
-            <Link to="/">
+            <Link to="/students">
               <ArrowLeft className="size-4" />
               Về danh sách
             </Link>

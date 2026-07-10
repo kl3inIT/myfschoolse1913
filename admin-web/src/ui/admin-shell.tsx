@@ -55,11 +55,11 @@ type NavItem = {
 }
 
 const navItems: NavItem[] = [
-  { label: 'Tổng quan', icon: LayoutDashboard },
+  { label: 'Tổng quan', icon: LayoutDashboard, to: '/' },
   {
     label: 'Học sinh',
     icon: Users,
-    to: '/',
+    to: '/students',
     matchPrefixes: ['/students'],
   },
   {

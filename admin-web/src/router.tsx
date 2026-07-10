@@ -8,6 +8,7 @@ import { AdminShell } from './ui/admin-shell.tsx'
 import { ApplicationManagementPage } from './features/applications/application-management-page.tsx'
 import { LoginPage } from './features/auth/login-page.tsx'
 import { ClassManagementPage } from './features/classes/class-management-page.tsx'
+import { DashboardPage } from './features/dashboard/dashboard-page.tsx'
 import { GradeManagementPage } from './features/grades/grade-management-page.tsx'
 import { NotificationManagementPage } from './features/notifications/notification-management-page.tsx'
 import { StudentDetailPage } from './features/students/student-detail-page.tsx'
@@ -27,6 +28,20 @@ const loginRoute = createRoute({
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
+  component: () => (
+    <AdminShell
+      title="Tổng quan"
+      breadcrumbSection="Tổng quan"
+      breadcrumbPage="Bảng điều khiển"
+    >
+      <DashboardPage />
+    </AdminShell>
+  ),
+})
+
+const studentsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/students',
   component: () => (
     <AdminShell>
       <StudentManagementPage />
@@ -120,6 +135,7 @@ const applicationsRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   loginRoute,
   indexRoute,
+  studentsRoute,
   studentDetailRoute,
   notificationsRoute,
   classesRoute,
