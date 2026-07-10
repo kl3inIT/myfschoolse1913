@@ -9,6 +9,7 @@ import { ApplicationManagementPage } from './features/applications/application-m
 import { LoginPage } from './features/auth/login-page.tsx'
 import { ClassManagementPage } from './features/classes/class-management-page.tsx'
 import { DashboardPage } from './features/dashboard/dashboard-page.tsx'
+import { AiManagementPage } from './features/ai/ai-management-page.tsx'
 import { GradeManagementPage } from './features/grades/grade-management-page.tsx'
 import { NotificationManagementPage } from './features/notifications/notification-management-page.tsx'
 import { StudentDetailPage } from './features/students/student-detail-page.tsx'
@@ -132,6 +133,20 @@ const applicationsRoute = createRoute({
   ),
 })
 
+const aiRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/ai',
+  component: () => (
+    <AdminShell
+      title="Quản lý AI"
+      breadcrumbSection="Quản lý AI"
+      breadcrumbPage="Kho tri thức & cài đặt"
+    >
+      <AiManagementPage />
+    </AdminShell>
+  ),
+})
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
   indexRoute,
@@ -142,6 +157,7 @@ const routeTree = rootRoute.addChildren([
   gradesRoute,
   timetableRoute,
   applicationsRoute,
+  aiRoute,
 ])
 
 export const router = createRouter({

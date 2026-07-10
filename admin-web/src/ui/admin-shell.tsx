@@ -8,6 +8,7 @@ import type { ReactNode } from 'react'
 import {
   Bell,
   BookOpenCheck,
+  Bot,
   CalendarDays,
   ClipboardList,
   GraduationCap,
@@ -91,6 +92,12 @@ const navItems: NavItem[] = [
     icon: ClipboardList,
     to: '/applications',
     matchPrefixes: ['/applications'],
+  },
+  {
+    label: 'Quản lý AI',
+    icon: Bot,
+    to: '/ai',
+    matchPrefixes: ['/ai'],
   },
 ]
 

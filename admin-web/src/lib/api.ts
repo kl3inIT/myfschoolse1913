@@ -83,6 +83,35 @@ export async function authorizedJson<TResponse>(
   return parseResponse<TResponse>(response)
 }
 
+export async function authorizedForm<TResponse>(
+  path: string,
+  formData: FormData,
+) {
+  const session = getStoredSession()
+  if (!session) {
+    throw new Error('Bạn cần đăng nhập quản trị')
+  }
+
+  // No Content-Type header: the browser sets multipart/form-data with the
+  // boundary itself.
+  const response = await fetch(path, {
+    method: 'POST',
+    headers: {
+      Authorization: `${session.tokenType} ${session.accessToken}`,
+    },
+    body: formData,
+  })
+
+  if (response.status === 401 || response.status === 403) {
+    clearSession()
+    if (window.location.pathname !== '/login') {
+      window.location.assign('/login')
+    }
+  }
+
+  return parseResponse<TResponse>(response)
+}
+
 async function parseResponse<T>(response: Response) {
   if (response.status === 204) {
     return undefined as T
