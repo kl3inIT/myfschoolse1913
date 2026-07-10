@@ -298,10 +298,7 @@ class _ProfileCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 10),
-                const Align(
-                  alignment: Alignment.centerLeft,
-                  child: _ActiveChip(),
-                ),
+                const Row(children: [_ActiveChip()]),
               ],
             ),
           ),
