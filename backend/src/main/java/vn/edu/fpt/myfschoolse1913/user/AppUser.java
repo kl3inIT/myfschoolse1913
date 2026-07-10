@@ -83,4 +83,14 @@ public class AppUser {
 		this.passwordHash = passwordHash;
 		this.updatedAt = Instant.now();
 	}
+
+	public void updatePhoneNumber(String phoneNumber) {
+		this.phoneNumber = phoneNumber;
+		this.updatedAt = Instant.now();
+	}
+
+	public void updateEnabled(boolean enabled) {
+		this.enabled = enabled;
+		this.updatedAt = Instant.now();
+	}
 }
