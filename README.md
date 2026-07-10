@@ -26,6 +26,8 @@ Current implemented scope includes:
 - clubs and registration flow;
 - notifications with detail/read-state;
 - account and logout;
+- AI assistant chat grounded in the student's own schedule, grades,
+  notifications, and applications (requires `OPENAI_API_KEY`);
 - admin web: dashboard, student/class/grade/timetable management with
   CSV/Excel import, notification publishing, and application review
   (`docs/specs/domains/admin-web.md`).
@@ -53,6 +55,8 @@ The backend reads:
 - `DB_PASSWORD`, default `northstar`
 - `SERVER_PORT`, default `8080`
 - `SEED_DEMO_USER`, default `false`
+- `OPENAI_API_KEY`, no default — required for the AI assistant
+- `ASSISTANT_CHAT_MODEL`, default `gpt-5.5`
 
 The defaults match the local `myfschoolse1913` database inside the
 `northstar-postgres-1` Docker container; point `DB_*` at any other

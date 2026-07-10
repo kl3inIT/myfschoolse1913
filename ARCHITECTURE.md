@@ -12,7 +12,8 @@ active increment.
   CSS, shadcn/ui, TanStack Router, TanStack Query, react-hook-form + zod,
   SheetJS (`xlsx`) for Excel import.
 - Backend: Spring Boot 4.1, Java toolchain 25, Gradle Kotlin DSL, Spring Data
-  JPA, Spring Security OAuth2 Resource Server/JWT, Flyway, PostgreSQL.
+  JPA, Spring Security OAuth2 Resource Server/JWT, Flyway, PostgreSQL,
+  Spring AI 2.0 (OpenAI chat + JDBC chat memory).
 - Auth: phone-number login, short-lived JWT access tokens, opaque refresh tokens
   stored as hashes.
 - Database: PostgreSQL. Flyway owns schema migrations under
@@ -86,6 +87,7 @@ vn.edu.fpt.myfschoolse1913
   user           app user and current-user endpoint
   student        student dashboard, grades, schedule, academic data
   application    student applications
+  assistant      student AI assistant (Spring AI chat + tools)
   club           clubs and club registration
   event          school events
   notification   notifications and read state
@@ -122,6 +124,8 @@ Authenticated student APIs:
 - `POST /api/students/me/clubs/{clubId}/registrations`
 - `GET /api/students/me/notifications`
 - `GET /api/students/me/notifications/{notificationId}`
+- `POST /api/students/me/assistant/chat` (SSE stream; see
+  `docs/specs/domains/assistant.md`)
 
 Admin APIs (require `ROLE_ADMIN`):
 
@@ -157,6 +161,8 @@ The local database is the `myfschoolse1913` database inside the
 5432).
 - `SERVER_PORT=8080`
 - `SEED_DEMO_USER=false`
+- `OPENAI_API_KEY` (no default; required for the student assistant)
+- `ASSISTANT_CHAT_MODEL=gpt-5.5`
 
 Flutter reads `API_BASE_URL` from `--dart-define`, defaulting to
 `http://localhost:8080`.

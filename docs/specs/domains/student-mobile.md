@@ -15,7 +15,8 @@ Implemented feature areas:
 - applications;
 - clubs;
 - notifications;
-- account.
+- account;
+- AI assistant (see `assistant.md`).
 
 ## Navigation
 
@@ -33,6 +34,7 @@ Additional student features are opened through home shortcuts:
 - `Sự kiện` -> `/events`
 - `Đơn từ` -> `/applications`
 - `CLB` -> `/clubs`
+- `Trợ lý AI` -> `/assistant`
 
 ## Student Dashboard
 
@@ -52,6 +54,8 @@ The dashboard shows:
 - Applications list existing applications and allow creating a new application.
 - Clubs list clubs and support registration.
 - Account displays current user information and logout.
+- The AI assistant answers Vietnamese questions about the student's own
+  schedule, grades, notifications, and applications (`assistant.md`).
 
 ## Copy And Scope Rules
 

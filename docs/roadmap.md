@@ -16,6 +16,10 @@ Admin web MVP completed 2026-07-10 — history in
 
 ## Recently Built
 
+- Student AI assistant (2026-07-10): Spring AI 2.0 `assistant` backend module
+  (OpenAI chat, JDBC conversation memory, read-only data tools) streaming SSE
+  to a `flutter_ai_toolkit` chat screen at `/assistant`
+  (`docs/specs/domains/assistant.md`).
 - Layered Flutter MVVM app shell.
 - Phone login and forgot-password flow.
 - Student dashboard.
@@ -41,3 +45,5 @@ Admin web MVP completed 2026-07-10 — history in
 - Add end-to-end browser checks for the demo flow.
 - Add docs/screenshots for the teacher review demo path.
 - Fix Android NDK version warning if Android rebuilds become noisy.
+- Assistant hardening: rate limiting/spend cap, integration tests with an LLM
+  stub, provider/SSE-parsing unit tests (see `docs/tests/domains/assistant.md`).
