@@ -1,0 +1,50 @@
+# Builds an UNSIGNED iOS IPA for personal sideloading (Sideloadly/AltStore
+# with a free Apple ID) — no Mac and no paid developer account needed on the
+# developer's side. See docs/guidelines/ios-sideload.md.
+#
+# Manual trigger only: the repo is private, and GitHub bills macOS runners at
+# a 10x minute multiplier, so one ~20-minute build costs ~200 of the 2000
+# free monthly minutes. The IPA does not need rebuilding for the weekly
+# re-sideload — only when the app code changes.
+name: iOS IPA (unsigned)
+
+on:
+  workflow_dispatch:
+    inputs:
+      api_base_url:
+        description: "API_BASE_URL the iPhone can reach (e.g. http://192.168.1.10:8080 or a public URL)"
+        required: true
+        default: "http://localhost:8080"
+
+jobs:
+  build-ipa:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.41.9
+          cache: true
+
+      - run: flutter pub get
+
+      - name: Build iOS (release, no codesign)
+        run: >
+          flutter build ios --release --no-codesign
+          --dart-define=API_BASE_URL=${{ inputs.api_base_url }}
+
+      - name: Package unsigned IPA
+        run: |
+          mkdir -p build/ios/ipa/Payload
+          cp -R build/ios/iphoneos/Runner.app build/ios/ipa/Payload/
+          cd build/ios/ipa
+          zip -qry MyFSchool-unsigned.ipa Payload
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MyFSchool-unsigned-ipa
+          path: build/ios/ipa/MyFSchool-unsigned.ipa
+          retention-days: 14

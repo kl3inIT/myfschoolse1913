@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Myfschoolse1913</string>
+	<string>MyFSchool</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -26,6 +26,12 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Ứng dụng cần micro nếu bạn dùng tin nhắn thoại với trợ lý AI.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Ứng dụng cần thư viện ảnh nếu bạn đính kèm ảnh khi chat.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Ứng dụng cần camera nếu bạn chụp ảnh đính kèm khi chat.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
