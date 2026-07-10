@@ -8,6 +8,7 @@ import type { ReactNode } from 'react'
 import {
   Bell,
   BookOpenCheck,
+  CalendarDays,
   ClipboardList,
   GraduationCap,
   LayoutDashboard,
@@ -72,6 +73,12 @@ const navItems: NavItem[] = [
     icon: BookOpenCheck,
     to: '/grades',
     matchPrefixes: ['/grades'],
+  },
+  {
+    label: 'Thời khóa biểu',
+    icon: CalendarDays,
+    to: '/timetable',
+    matchPrefixes: ['/timetable'],
   },
   {
     label: 'Thông báo',

@@ -11,6 +11,7 @@ import { GradeManagementPage } from './features/grades/grade-management-page.tsx
 import { NotificationManagementPage } from './features/notifications/notification-management-page.tsx'
 import { StudentDetailPage } from './features/students/student-detail-page.tsx'
 import { StudentManagementPage } from './features/students/student-management-page.tsx'
+import { TimetableManagementPage } from './features/timetable/timetable-management-page.tsx'
 
 const rootRoute = createRootRoute({
   component: () => <Outlet />,
@@ -87,6 +88,20 @@ const gradesRoute = createRoute({
   ),
 })
 
+const timetableRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/timetable',
+  component: () => (
+    <AdminShell
+      title="Thời khóa biểu"
+      breadcrumbSection="Thời khóa biểu"
+      breadcrumbPage="Danh sách"
+    >
+      <TimetableManagementPage />
+    </AdminShell>
+  ),
+})
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
   indexRoute,
@@ -94,6 +109,7 @@ const routeTree = rootRoute.addChildren([
   notificationsRoute,
   classesRoute,
   gradesRoute,
+  timetableRoute,
 ])
 
 export const router = createRouter({
