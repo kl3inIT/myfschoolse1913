@@ -81,6 +81,22 @@ public class SemesterSubjectGrade {
 		this.teacherComment = teacherComment;
 	}
 
+	public UUID getId() {
+		return id;
+	}
+
+	public Student getStudent() {
+		return student;
+	}
+
+	public Semester getSemester() {
+		return semester;
+	}
+
+	public Instant getUpdatedAt() {
+		return updatedAt;
+	}
+
 	public Subject getSubject() {
 		return subject;
 	}
@@ -107,5 +123,22 @@ public class SemesterSubjectGrade {
 
 	public String getTeacherComment() {
 		return teacherComment;
+	}
+
+	public void updateScores(
+			BigDecimal formativeScore,
+			BigDecimal midtermScore,
+			BigDecimal finalScore,
+			BigDecimal averageScore,
+			String detail,
+			String teacherComment
+	) {
+		this.formativeScore = formativeScore;
+		this.midtermScore = midtermScore;
+		this.finalScore = finalScore;
+		this.averageScore = averageScore;
+		this.detail = detail;
+		this.teacherComment = teacherComment;
+		this.updatedAt = Instant.now();
 	}
 }

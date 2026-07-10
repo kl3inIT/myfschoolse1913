@@ -54,6 +54,10 @@ public class Semester {
 		return id;
 	}
 
+	public AcademicYear getAcademicYear() {
+		return academicYear;
+	}
+
 	public String getName() {
 		return name;
 	}
