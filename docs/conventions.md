@@ -49,6 +49,13 @@
 - After `await`, check `context.mounted` before using `BuildContext`; in a
   `State`, check `mounted` before calling `setState`.
 
+## Admin Web
+
+- Every admin-web page follows the resource pattern in
+  [guidelines/admin-web-patterns.md](./guidelines/admin-web-patterns.md):
+  list/detail/edit/create anatomy, in-place editing, bulk import, query-key
+  and API conventions.
+
 ## Backend
 
 - Backend is a Spring Boot modular monolith.

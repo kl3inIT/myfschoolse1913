@@ -8,6 +8,9 @@ active increment.
 
 - Mobile/web demo client: Flutter, Dart, Material, `go_router`, `http`,
   `flutter_secure_storage`, `flutter_lints`.
+- Admin web client: Vite + React + TypeScript in `admin-web/` (pnpm), Tailwind
+  CSS, shadcn/ui, TanStack Router, TanStack Query, react-hook-form + zod,
+  SheetJS (`xlsx`) for Excel import.
 - Backend: Spring Boot 4.1, Java toolchain 25, Gradle Kotlin DSL, Spring Data
   JPA, Spring Security OAuth2 Resource Server/JWT, Flyway, PostgreSQL.
 - Auth: phone-number login, short-lived JWT access tokens, opaque refresh tokens
@@ -29,6 +32,9 @@ lib/vn/edu/fpt/       Flutter app source
 backend/              Spring Boot backend
   src/main/java/...   business modules under vn.edu.fpt.myfschoolse1913
   src/main/resources  application config and Flyway migrations
+
+admin-web/            React admin web (Vite dev server on 5174, /api proxied
+                      to localhost:8080)
 
 android/ ios/ web/ windows/ linux/ macos/
                       Flutter platform targets
@@ -117,13 +123,33 @@ Authenticated student APIs:
 - `GET /api/students/me/notifications`
 - `GET /api/students/me/notifications/{notificationId}`
 
+Admin APIs (require `ROLE_ADMIN`):
+
+- `POST /api/admin/students/import`
+- `GET /api/admin/students?search=&page=&size=`
+- `GET /api/admin/students/stats`
+- `GET /api/admin/students/{id}`
+- `PUT /api/admin/students/{id}`
+- `POST /api/admin/notifications`
+- `GET /api/admin/notifications?page=&size=`
+- `DELETE /api/admin/notifications/{id}` (soft deactivate)
+- `GET /api/admin/academic-years`
+- `POST /api/admin/academic-years`
+- `POST /api/admin/academic-years/{yearId}/classes`
+- `GET /api/admin/grades?search=&page=&size=`
+- `POST /api/admin/grades/import`
+
 ## Runtime Configuration
 
 Backend defaults:
 
-- `DB_URL=jdbc:postgresql://localhost:5433/myfschoolse1913`
-- `DB_USERNAME=postgres`
-- `DB_PASSWORD=admin123`
+- `DB_URL=jdbc:postgresql://localhost:5432/myfschoolse1913`
+- `DB_USERNAME=northstar`
+- `DB_PASSWORD=northstar`
+
+The local database is the `myfschoolse1913` database inside the
+`northstar-postgres-1` Docker container (pgvector/pgvector:pg18, host port
+5432).
 - `SERVER_PORT=8080`
 - `SEED_DEMO_USER=false`
 
@@ -144,6 +170,11 @@ flutter build apk --debug --dart-define=API_BASE_URL=http://10.0.2.2:8080
 cd backend
 .\gradlew.bat test --rerun-tasks
 .\gradlew.bat bootRun
+
+cd admin-web
+npm run dev
+npm run lint
+npm run build
 ```
 
 Do not use `bootRun` as a terminating verification gate. It is for running the
