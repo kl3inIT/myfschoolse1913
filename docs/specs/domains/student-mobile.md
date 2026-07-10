@@ -35,6 +35,12 @@ Additional student features are opened through home shortcuts:
 - `Đơn từ` -> `/applications`
 - `CLB` -> `/clubs`
 - `Trợ lý AI` -> `/assistant`
+- `Thông tin học sinh` (from Account) -> `/account/profile`
+
+Every screen shares `StudentTopAppBar` (64lp, orange painted behind the
+status bar, light status icons, adaptive back chevron). Home is the only
+screen without a back button; the other screens navigate back to home or
+their parent.
 
 ## Student Dashboard
 
@@ -53,7 +59,10 @@ The dashboard shows:
 - Events display school events.
 - Applications list existing applications and allow creating a new application.
 - Clubs list clubs and support registration.
-- Account displays current user information and logout.
+- Account displays current user information and logout; `Thông tin học
+  sinh` opens the profile page (role, class, school year, status, phone
+  from the dashboard API), while `Cài đặt` and `Hỗ trợ` show a
+  coming-soon snackbar.
 - The AI assistant answers Vietnamese questions about the student's own
   schedule, grades, notifications, and applications (`assistant.md`).
 
