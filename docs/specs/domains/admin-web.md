@@ -108,6 +108,44 @@ admin APIs. Product intent lives in
   queries are invalidated so the list refreshes. The student app reflects
   imported grades immediately in the semester grades screen.
 
+## Timetable List And Import
+
+- Route `/timetable` ("Thời khóa biểu" in the sidebar).
+- `GET /api/admin/timetable?search=&page=&size=` returns
+  `{page, size, totalItems, totalPages, items[]}` sorted by class name, then
+  day, then lesson number. Each item: `id`, `className`, `academicYearName`,
+  `semesterName`, `dayIndex` (1 = Monday .. 7 = Sunday), `lessonNumber`,
+  `slotType` (`SUBJECT|MEAL|ACTIVITY`), `title`, `subjectCode`, `roomName`,
+  `teacherName`, `startsAt`/`endsAt` (`HH:mm`), `updatedAt`. `search` matches
+  class name, title, room, teacher, or subject code; `size` clamped 1..200.
+- `POST /api/admin/timetable/import` takes `{academicYearName, semesterName,
+  defaultClassName?, slots[]}` (max 500 rows). The year must exist (404); the
+  semester is resolved by name and auto-created when missing (same rule as
+  grade import); classes are auto-created within the year by name.
+- Each row: `dayIndex` (1..7) + `lessonNumber` (1..20) + `startsAt`/`endsAt`
+  (`HH:mm`, end must be after start) required; `className` falls back to
+  `defaultClassName` (row skipped when both are blank); `slotType` defaults
+  to `SUBJECT`; `title` falls back to the subject name (skipped when neither
+  is present); an unknown `subjectCode` needs `subjectName` to auto-create
+  the subject.
+- Upsert per (class, semester, day, lesson): existing slots are UPDATED, new
+  ones CREATED; in-file duplicates and invalid rows are SKIPPED with a
+  Vietnamese reason.
+- The page (`TimetableManagementPage`) follows the list pattern: debounced
+  search + toolbar actions "Tải mẫu CSV" and "Nhập TKB" (sheet with
+  year/semester/default-class fields, CSV/Excel dropzone, editable textarea,
+  validation alert, preview). After submit the sheet switches to a result
+  view and `['admin-timetable']` queries are invalidated. The student app
+  reflects imported slots immediately in the schedule and dashboard APIs.
+- A toolbar toggle switches between "Danh sách" (the DataTable) and
+  "Lưới tuần" (`features/timetable/weekly-grid.tsx`): a read-only weekly
+  matrix (columns = days with slots, rows = lesson numbers) for one class
+  (select fed by the academic-years endpoint) and semester (select shown
+  when the class has more than one), with cells colored by slot type
+  (SUBJECT = primary, MEAL = muted, ACTIVITY = sky). Built with plain CSS
+  grid — no calendar library; the OpenEduCat-style multi-view pattern for
+  the same resource.
+
 ## Notification Publishing
 
 - Route `/notifications`, reachable from the sidebar ("Học sinh" and

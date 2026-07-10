@@ -65,6 +65,11 @@ remaining space, pagination stays fixed at the bottom.
 - States: skeleton while loading, empty state (`Empty` component) with a
   primary action when the list is empty, distinct copy when a search has no
   hits.
+- A resource may add an alternate read-only visualization next to the list
+  (OpenEduCat-style multi-view: list + calendar/kanban of the same data) via
+  a small toolbar toggle — e.g. the timetable's per-class weekly grid. Build
+  such views with plain CSS grid; only reach for a calendar library when
+  continuous-time events or drag-drop editing are actually needed.
 
 ## Edit Pattern (Jmix-style in-place)
 

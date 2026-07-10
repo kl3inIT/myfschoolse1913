@@ -84,6 +84,15 @@ accounts because students do not self-register in the mobile app.
 2. Notifications table converted to the shared `DataTable` + `columns.tsx`.
 3. 401/403 now clears the session and immediately redirects to `/login`.
 
+## Tenth Slice (built)
+
+1. Timetable at `/timetable`: list of class timetable slots (search + paging,
+   sorted class/day/lesson) plus CSV/Excel import with per-row upsert on
+   (class, semester, day, lesson) — reusing the existing
+   `ClassTimetableSlot` model the student schedule reads from.
+2. Backend `GET /api/admin/timetable` and `POST /api/admin/timetable/import`
+   with auto-created semesters/classes/subjects and Vietnamese skip reasons.
+
 Current behavior is documented in `docs/specs/domains/admin-web.md`.
 
 ## Deferred

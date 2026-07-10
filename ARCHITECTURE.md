@@ -138,6 +138,8 @@ Admin APIs (require `ROLE_ADMIN`):
 - `POST /api/admin/academic-years/{yearId}/classes`
 - `GET /api/admin/grades?search=&page=&size=`
 - `POST /api/admin/grades/import`
+- `GET /api/admin/timetable?search=&page=&size=`
+- `POST /api/admin/timetable/import`
 
 ## Runtime Configuration
 
