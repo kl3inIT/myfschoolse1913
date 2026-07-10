@@ -23,7 +23,8 @@ See
   account screens.
 - Spring Boot backend modules and Flyway schema for the student-facing APIs.
 - Notification detail/read-state feature.
-- Admin web: login, student CSV/Excel import, student list with
+- Admin web: login, overview dashboard, student CSV/Excel import, student
+  list with
   search/paging/stat cards, student detail page with in-place edit,
   notification publishing with recall, academic year/class master data,
   semester grade list + CSV/Excel import, timetable list + CSV/Excel

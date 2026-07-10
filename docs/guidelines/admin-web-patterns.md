@@ -13,8 +13,10 @@ what a resource does not need yet.
 
 Routes:
 
-- `/<resource>` — list page (e.g. `/`, `/classes`, `/notifications`,
-  `/grades`).
+- `/` — the dashboard (landing page): stat cards reusing resource stats
+  endpoints plus "needs attention" panels linking into resources.
+- `/<resource>` — list page (e.g. `/students`, `/classes`,
+  `/notifications`, `/grades`, `/timetable`, `/applications`).
 - `/<resource>/:id` — detail page when a row has enough data to justify one
   (students). Row click navigates here.
 - Create/Edit do not get separate routes yet: create lives on the list page,

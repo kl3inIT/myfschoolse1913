@@ -16,6 +16,19 @@ admin APIs. Product intent lives in
   redirect to `/login` (hard navigation, skipped when already on `/login`).
 - Backend gates `/api/admin/**` with `ROLE_ADMIN` (`SecurityConfig`).
 
+## Dashboard
+
+- Route `/` ("Tổng quan" in the sidebar) — the landing page after login.
+- Four stat cards reuse existing stats endpoints (no dashboard-specific
+  API): total students, class count, pending applications, locked accounts.
+- Two panels: "Đơn từ chờ duyệt" (top 5 pending applications) and
+  "Thông báo mới nhất" (5 latest notifications, recalled ones muted with a
+  badge), each with a "Xem tất cả" link to the resource page. Dashboard
+  queries live under the same `['admin-*']` prefixes, so mutations made on
+  other pages refresh it.
+- The student list moved from `/` to `/students`; detail stays at
+  `/students/:studentId` and back-links target `/students`.
+
 ## Student Import
 
 - `POST /api/admin/students/import` creates or updates `STUDENT` accounts plus
@@ -175,8 +188,8 @@ admin APIs. Product intent lives in
 
 ## Notification Publishing
 
-- Route `/notifications`, reachable from the sidebar (all items except the
-  "Tổng quan" placeholder are real links with route-based active state).
+- Route `/notifications`, reachable from the sidebar (every sidebar item is
+  a real link with route-based active state; no placeholders remain).
 - `POST /api/admin/notifications` publishes a `SchoolNotification`
   (`title` ≤160, `body` ≤1000, category `ACADEMIC|EVENT|SERVICE|GENERAL`,
   audience `ALL_STUDENTS|HIGH_SCHOOL`, optional `pinned`); `publishedAt` is

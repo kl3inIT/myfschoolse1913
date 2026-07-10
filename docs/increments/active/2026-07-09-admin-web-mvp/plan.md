@@ -103,6 +103,14 @@ accounts because students do not self-register in the mobile app.
    `PUT /api/admin/applications/{id}` reviewing PENDING applications on the
    existing `StudentApplication` model (409 when already reviewed).
 
+## Twelfth Slice (built)
+
+1. Dashboard at `/` as the landing page: stat cards from existing stats
+   endpoints plus pending-applications and latest-notifications panels with
+   links into each resource. No new backend API.
+2. The student list moved to `/students`; every sidebar item is now a real
+   link (no placeholders remain).
+
 Current behavior is documented in `docs/specs/domains/admin-web.md`.
 
 ## Deferred
