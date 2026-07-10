@@ -13,7 +13,8 @@ active increment.
   SheetJS (`xlsx`) for Excel import.
 - Backend: Spring Boot 4.1, Java toolchain 25, Gradle Kotlin DSL, Spring Data
   JPA, Spring Security OAuth2 Resource Server/JWT, Flyway, PostgreSQL,
-  Spring AI 2.0 (OpenAI chat + JDBC chat memory).
+  Spring AI 2.0 (OpenAI chat + JDBC chat memory + pgvector RAG + Tika
+  document reader).
 - Auth: phone-number login, short-lived JWT access tokens, opaque refresh tokens
   stored as hashes.
 - Database: PostgreSQL. Flyway owns schema migrations under
@@ -87,7 +88,8 @@ vn.edu.fpt.myfschoolse1913
   user           app user and current-user endpoint
   student        student dashboard, grades, schedule, academic data
   application    student applications
-  assistant      student AI assistant (Spring AI chat + tools)
+  assistant      student AI assistant (Spring AI chat + tools + settings)
+  document       school knowledge documents + pgvector ingestion/search
   club           clubs and club registration
   event          school events
   notification   notifications and read state
@@ -147,6 +149,11 @@ Admin APIs (require `ROLE_ADMIN`):
 - `GET /api/admin/applications?search=&status=&page=&size=`
 - `GET /api/admin/applications/stats`
 - `PUT /api/admin/applications/{id}` (review: approve/reject)
+- `POST /api/admin/documents` (multipart upload + vector ingestion)
+- `GET /api/admin/documents?search=&category=&page=&size=`
+- `DELETE /api/admin/documents/{documentId}`
+- `GET /api/admin/assistant/settings`
+- `PUT /api/admin/assistant/settings`
 
 ## Runtime Configuration
 

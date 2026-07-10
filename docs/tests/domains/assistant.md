@@ -23,6 +23,16 @@ Postgres, as demo student `0900000001`:
   from curl was the shell sending cp1252, not an app defect).
 - Flutter web: home shortcut `Trợ lý AI` → `/assistant`, welcome message +
   suggestion chips render, streamed answer appears incrementally.
+- Knowledge base: uploaded a REGULATION markdown via curl and a
+  SUBJECT_MATERIAL file via the admin upload dialog; both INDEXED with chunk
+  counts. "Lệ phí thi lại...?" answered 200.000đ/môn + hạn 25/07 citing
+  "Quy chế thi lại và học lại" — content that exists only in the upload.
+- Settings: saved topK 3 + extra instruction (fixed closing sentence) on the
+  admin page; the next student turn cited the Toán document AND ended with
+  the exact configured sentence — settings flow into prompt + retrieval.
+- The documents list initially 500'd (`lower(bytea)` — null String param
+  binds as bytea on PostgreSQL); fixed by the repo-standard ''-sentinel
+  search parameter and re-verified.
 
 ## Gaps
 
@@ -31,5 +41,7 @@ Postgres, as demo student `0900000001`:
 - Tool methods have no unit tests (date/status parsing, ToolContext user id).
 - No Flutter widget test for `SchoolAssistantProvider` SSE parsing
   (`ApiClient.postEventStream` chunk-boundary handling is untested).
-- Memory windowing (30 messages) and cross-restart persistence unverified.
+- Memory windowing and cross-restart persistence unverified.
 - No rate limiting / spend cap on the endpoint; abuse would burn API credit.
+- Ingestion untested for real PDF/Word files (only text/Markdown exercised).
+- Settings validation ranges rely on Bean Validation; no test pins them.

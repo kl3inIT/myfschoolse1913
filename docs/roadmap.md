@@ -20,6 +20,10 @@ Admin web MVP completed 2026-07-10 — history in
   (OpenAI chat, JDBC conversation memory, read-only data tools) streaming SSE
   to a `flutter_ai_toolkit` chat screen at `/assistant`
   (`docs/specs/domains/assistant.md`).
+- AI knowledge base + admin AI management (2026-07-10): `document` module
+  (upload → Tika → embeddings → pgvector), `searchSchoolDocuments` RAG tool
+  with source citations, and the admin `Quản lý AI` page (runtime model/
+  sampling/RAG/memory settings + document upload/list/delete).
 - Layered Flutter MVVM app shell.
 - Phone login and forgot-password flow.
 - Student dashboard.

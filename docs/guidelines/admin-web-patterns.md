@@ -16,7 +16,7 @@ Routes:
 - `/` — the dashboard (landing page): stat cards reusing resource stats
   endpoints plus "needs attention" panels linking into resources.
 - `/<resource>` — list page (e.g. `/students`, `/classes`,
-  `/notifications`, `/grades`, `/timetable`, `/applications`).
+  `/notifications`, `/grades`, `/timetable`, `/applications`, `/ai`).
 - `/<resource>/:id` — detail page when a row has enough data to justify one
   (students). Row click navigates here.
 - Create/Edit do not get separate routes yet: create lives on the list page,

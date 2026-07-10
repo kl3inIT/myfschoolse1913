@@ -208,6 +208,24 @@ admin APIs. The originating increment history lives in
   selects, pinned checkbox). Publishing closes the dialog and invalidates the
   `['admin-notifications']` query.
 
+## AI Management
+
+- Route `/ai` ("Quản lý AI" in the sidebar) with two toolbar-toggle views:
+  "Cấu hình" (default) and "Kho tri thức".
+- Cấu hình: full-width settings card over
+  `GET/PUT /api/admin/assistant/settings` — chat model, optional sampling
+  options (temperature, topP, maxTokens, frequency/presence penalty; blank =
+  provider default), RAG topK + similarity threshold, conversation memory
+  window, and extra system-prompt instructions. Saving applies to the next
+  student chat turn without a restart.
+- Kho tri thức: document list (title/file/size, category badge, subject,
+  ingest status with chunk count, delete) over `GET /api/admin/documents`,
+  with search and an upload dialog (`POST /api/admin/documents`, multipart:
+  file + title auto-filled from the filename + category select + optional
+  subject). Uploads are ingested into the assistant's vector store
+  immediately; delete removes the vectors too. Details in
+  `docs/specs/domains/assistant.md`.
+
 ## Student Detail And Edit
 
 - Route `/students/:studentId` backed by `GET /api/admin/students/{id}`
