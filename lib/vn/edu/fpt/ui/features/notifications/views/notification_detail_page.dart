@@ -1,3 +1,4 @@
+import 'package:myfschoolse1913/vn/edu/fpt/ui/core/layout/page_frame.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/app/app_router.dart';
@@ -87,11 +88,11 @@ class _NotificationDetailPageState extends State<NotificationDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: FptColors.field,
+      backgroundColor: pageBackdropColor(context),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 390),
+            constraints: BoxConstraints(maxWidth: pageContentMaxWidth(context)),
             child: ColoredBox(
               color: Colors.white,
               child: ListenableBuilder(

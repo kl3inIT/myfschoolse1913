@@ -1,3 +1,4 @@
+import 'package:myfschoolse1913/vn/edu/fpt/ui/core/layout/page_frame.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_ai_toolkit/flutter_ai_toolkit.dart';
 import 'package:go_router/go_router.dart';
@@ -35,11 +36,11 @@ class _AssistantPageState extends State<AssistantPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: FptColors.field,
+      backgroundColor: pageBackdropColor(context),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 390),
+            constraints: BoxConstraints(maxWidth: pageContentMaxWidth(context)),
             child: ColoredBox(
               color: Colors.white,
               child: Column(
