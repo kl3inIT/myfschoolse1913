@@ -83,6 +83,18 @@ public class StudentApplication {
 		return id;
 	}
 
+	public Student getStudent() {
+		return student;
+	}
+
+	public String getReviewerNote() {
+		return reviewerNote;
+	}
+
+	public Instant getReviewedAt() {
+		return reviewedAt;
+	}
+
 	public StudentApplicationType getType() {
 		return type;
 	}
