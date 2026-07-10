@@ -86,7 +86,12 @@ const navItems: NavItem[] = [
     to: '/notifications',
     matchPrefixes: ['/notifications'],
   },
-  { label: 'Đơn từ', icon: ClipboardList },
+  {
+    label: 'Đơn từ',
+    icon: ClipboardList,
+    to: '/applications',
+    matchPrefixes: ['/applications'],
+  },
 ]
 
 function isNavItemActive(item: NavItem, pathname: string) {

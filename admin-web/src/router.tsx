@@ -5,6 +5,7 @@ import {
   Outlet,
 } from '@tanstack/react-router'
 import { AdminShell } from './ui/admin-shell.tsx'
+import { ApplicationManagementPage } from './features/applications/application-management-page.tsx'
 import { LoginPage } from './features/auth/login-page.tsx'
 import { ClassManagementPage } from './features/classes/class-management-page.tsx'
 import { GradeManagementPage } from './features/grades/grade-management-page.tsx'
@@ -102,6 +103,20 @@ const timetableRoute = createRoute({
   ),
 })
 
+const applicationsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/applications',
+  component: () => (
+    <AdminShell
+      title="Đơn từ"
+      breadcrumbSection="Đơn từ"
+      breadcrumbPage="Danh sách"
+    >
+      <ApplicationManagementPage />
+    </AdminShell>
+  ),
+})
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
   indexRoute,
@@ -110,6 +125,7 @@ const routeTree = rootRoute.addChildren([
   classesRoute,
   gradesRoute,
   timetableRoute,
+  applicationsRoute,
 ])
 
 export const router = createRouter({
