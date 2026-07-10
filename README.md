@@ -4,9 +4,9 @@ MyFSchoolSE1913 is a Flutter learning project and real prototype for an FPT
 Schools-style student app.
 
 The current product is a student-facing mobile app backed by a Spring Boot
-modular monolith. Flutter Web is used as an acceptable web/demo target for the
-same student experience. A React admin UI is planned later and is not currently
-implemented.
+modular monolith, plus a React admin web (`admin-web/`) for school staff.
+Flutter Web is used as an acceptable web/demo target for the same student
+experience.
 
 ## Status
 
@@ -24,8 +24,11 @@ Current implemented scope includes:
 - events;
 - applications and create-application flow;
 - clubs and registration flow;
-- notifications, with notification detail/read-state in progress;
-- account and logout.
+- notifications with detail/read-state;
+- account and logout;
+- admin web: dashboard, student/class/grade/timetable management with
+  CSV/Excel import, notification publishing, and application review
+  (`docs/specs/domains/admin-web.md`).
 
 ## Quickstart
 
@@ -45,11 +48,24 @@ cd backend
 
 The backend reads:
 
-- `DB_URL`, default `jdbc:postgresql://localhost:5433/myfschoolse1913`
-- `DB_USERNAME`, default `postgres`
-- `DB_PASSWORD`, default `admin123`
+- `DB_URL`, default `jdbc:postgresql://localhost:5432/myfschoolse1913`
+- `DB_USERNAME`, default `northstar`
+- `DB_PASSWORD`, default `northstar`
 - `SERVER_PORT`, default `8080`
 - `SEED_DEMO_USER`, default `false`
+
+The defaults match the local `myfschoolse1913` database inside the
+`northstar-postgres-1` Docker container; point `DB_*` at any other
+PostgreSQL instance as needed.
+
+Admin web (requires the backend on port 8080; demo admin
+`0900000000` / `Password123` when demo data is seeded):
+
+```powershell
+cd admin-web
+pnpm install
+npm run dev
+```
 
 Flutter web:
 
@@ -72,6 +88,9 @@ flutter build web --dart-define=API_BASE_URL=http://localhost:8080
 flutter build apk --debug --dart-define=API_BASE_URL=http://10.0.2.2:8080
 cd backend
 .\gradlew.bat test --rerun-tasks
+cd ..\admin-web
+npm run lint
+npm run build
 ```
 
 Backend tests require a reachable PostgreSQL database matching the backend

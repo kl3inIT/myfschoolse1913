@@ -1,5 +1,26 @@
 # Plan: Basic Mobile And Flutter Web MVP
 
+## Status 2026-07-10
+
+All five steps verified against the running backend + northstar Postgres:
+
+1. Docs/runbook: README quickstart updated (DB defaults now the
+   `northstar-postgres-1` container, admin-web quickstart added).
+2. Backend runtime: DB decided (5432/northstar), Flyway current,
+   `gradlew test` green.
+3. Notification detail/read-state: shipped earlier; recalled notifications
+   verified hidden from the student list.
+4. Flutter targets: `flutter analyze` clean, `flutter test` 4/4,
+   `flutter build web` and `flutter build apk --debug` both pass (NDK
+   version warning remains, non-blocking).
+5. Demo walkthrough on the built web bundle (served statically, real
+   backend): login → home (today schedule) → semester grades (shows
+   admin-imported scores) → weekly schedule (shows admin-imported Saturday
+   slots) → notifications + detail → applications (pending/approved/
+   rejected tabs reflect admin review) → events → clubs → account → logout.
+
+Remaining before closing the increment: the actual teacher demo.
+
 ## 1. Stabilize Docs And Runbook
 
 - Apply repository-as-system-of-record harness.
