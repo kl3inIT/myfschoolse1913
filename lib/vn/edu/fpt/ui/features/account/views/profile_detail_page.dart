@@ -179,14 +179,27 @@ class _ProfileBody extends StatelessWidget {
         ),
         const SizedBox(height: 28),
         _ProfileField(label: 'Vai trò', value: loadedStudent.role.label),
-        _ProfileField(label: 'Lớp', value: loadedStudent.className),
-        _ProfileField(label: 'Năm học', value: loadedStudent.schoolYear),
+        _ProfileField(
+          label: 'Lớp',
+          value: _stripLabelPrefix(loadedStudent.className, 'Lớp'),
+        ),
+        _ProfileField(
+          label: 'Năm học',
+          value: _stripLabelPrefix(loadedStudent.schoolYear, 'Năm học'),
+        ),
         _ProfileField(label: 'Trạng thái', value: loadedStudent.status),
         if (phoneNumber.isNotEmpty)
           _ProfileField(label: 'Số điện thoại', value: phoneNumber),
       ],
     );
   }
+}
+
+/// The dashboard API returns display strings like 'Lớp 10A1'; drop the
+/// part that would repeat the row label.
+String _stripLabelPrefix(String value, String label) {
+  final prefix = '$label ';
+  return value.startsWith(prefix) ? value.substring(prefix.length) : value;
 }
 
 class _ProfileField extends StatelessWidget {
