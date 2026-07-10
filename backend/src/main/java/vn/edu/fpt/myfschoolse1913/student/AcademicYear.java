@@ -46,7 +46,19 @@ public class AcademicYear {
 		return name;
 	}
 
+	public LocalDate getStartsOn() {
+		return startsOn;
+	}
+
+	public LocalDate getEndsOn() {
+		return endsOn;
+	}
+
 	public boolean isCurrentYear() {
 		return currentYear;
+	}
+
+	public void updateCurrentYear(boolean currentYear) {
+		this.currentYear = currentYear;
 	}
 }
