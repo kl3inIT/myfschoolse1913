@@ -1,11 +1,18 @@
-import { Navigate, useNavigate } from '@tanstack/react-router'
+import {
+  Link,
+  Navigate,
+  useNavigate,
+  useRouterState,
+} from '@tanstack/react-router'
 import type { ReactNode } from 'react'
 import {
   Bell,
+  BookOpenCheck,
   ClipboardList,
   GraduationCap,
   LayoutDashboard,
   LogOut,
+  School,
   Users,
   type LucideIcon,
 } from 'lucide-react'
@@ -34,23 +41,69 @@ import { clearSession, getStoredSession } from '@/lib/api'
 
 type AdminShellProps = {
   children: ReactNode
+  title?: string
+  breadcrumbSection?: string
+  breadcrumbPage?: string
 }
 
 type NavItem = {
   label: string
   icon: LucideIcon
-  active: boolean
+  to?: string
+  matchPrefixes?: string[]
 }
 
 const navItems: NavItem[] = [
-  { label: 'Tổng quan', icon: LayoutDashboard, active: false },
-  { label: 'Học sinh', icon: Users, active: true },
-  { label: 'Thông báo', icon: Bell, active: false },
-  { label: 'Đơn từ', icon: ClipboardList, active: false },
+  { label: 'Tổng quan', icon: LayoutDashboard },
+  {
+    label: 'Học sinh',
+    icon: Users,
+    to: '/',
+    matchPrefixes: ['/students'],
+  },
+  {
+    label: 'Lớp học',
+    icon: School,
+    to: '/classes',
+    matchPrefixes: ['/classes'],
+  },
+  {
+    label: 'Điểm số',
+    icon: BookOpenCheck,
+    to: '/grades',
+    matchPrefixes: ['/grades'],
+  },
+  {
+    label: 'Thông báo',
+    icon: Bell,
+    to: '/notifications',
+    matchPrefixes: ['/notifications'],
+  },
+  { label: 'Đơn từ', icon: ClipboardList },
 ]
 
-export function AdminShell({ children }: AdminShellProps) {
+function isNavItemActive(item: NavItem, pathname: string) {
+  if (!item.to) {
+    return false
+  }
+  if (item.to === pathname) {
+    return true
+  }
+  return (item.matchPrefixes ?? []).some((prefix) =>
+    pathname.startsWith(prefix),
+  )
+}
+
+export function AdminShell({
+  children,
+  title = 'Học sinh',
+  breadcrumbSection = 'Học sinh',
+  breadcrumbPage = 'Danh sách',
+}: AdminShellProps) {
   const navigate = useNavigate()
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  })
   const session = getStoredSession()
 
   if (!session || session.user.role !== 'ADMIN') {
@@ -81,10 +134,23 @@ export function AdminShell({ children }: AdminShellProps) {
           <SidebarMenu className="px-2">
             {navItems.map((item) => (
               <SidebarMenuItem key={item.label}>
-                <SidebarMenuButton tooltip={item.label} isActive={item.active}>
-                  <item.icon />
-                  <span>{item.label}</span>
-                </SidebarMenuButton>
+                {item.to ? (
+                  <SidebarMenuButton
+                    asChild
+                    tooltip={item.label}
+                    isActive={isNavItemActive(item, pathname)}
+                  >
+                    <Link to={item.to}>
+                      <item.icon />
+                      <span>{item.label}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                ) : (
+                  <SidebarMenuButton tooltip={item.label} disabled>
+                    <item.icon />
+                    <span>{item.label}</span>
+                  </SidebarMenuButton>
+                )}
               </SidebarMenuItem>
             ))}
           </SidebarMenu>
@@ -129,16 +195,16 @@ export function AdminShell({ children }: AdminShellProps) {
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
-                  <BreadcrumbLink href="/">Học sinh</BreadcrumbLink>
+                  <BreadcrumbLink href="/">{breadcrumbSection}</BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
-                  <BreadcrumbPage>Danh sách</BreadcrumbPage>
+                  <BreadcrumbPage>{breadcrumbPage}</BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
             <h1 className="truncate text-xl font-semibold tracking-tight">
-              Học sinh
+              {title}
             </h1>
           </div>
         </header>

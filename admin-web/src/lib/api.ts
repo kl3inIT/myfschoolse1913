@@ -75,6 +75,9 @@ export async function authorizedJson<TResponse>(
 
   if (response.status === 401 || response.status === 403) {
     clearSession()
+    if (window.location.pathname !== '/login') {
+      window.location.assign('/login')
+    }
   }
 
   return parseResponse<TResponse>(response)

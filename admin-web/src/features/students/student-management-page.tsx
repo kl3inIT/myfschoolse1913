@@ -1,6 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation } from '@tanstack/react-query'
-import { useMemo, useState } from 'react'
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
+import { useNavigate } from '@tanstack/react-router'
+import { useEffect, useMemo, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { useForm, type UseFormReturn } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -11,12 +17,17 @@ import {
   Download,
   FileSpreadsheet,
   Loader2,
+  Lock,
+  School,
   UploadCloud,
+  UserCheck,
   Users,
 } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { DataTable, DataTablePagination } from '@/components/data-table'
+import { studentColumns } from './columns'
 import {
   Empty,
   EmptyDescription,
@@ -45,6 +56,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
   TableBody,
@@ -61,6 +73,16 @@ import {
   type StudentImportRow,
   type StudentImportRowResult,
 } from '@/lib/student-import'
+import {
+  fetchStudents,
+  fetchStudentStats,
+  type AdminStudent,
+  type AdminStudentListResponse,
+  type AdminStudentStats,
+} from '@/lib/students'
+import { fileToCsvText, spreadsheetDropzoneAccept } from '@/lib/spreadsheet'
+
+const pageSize = 20
 
 const sampleCsv = `studentCode,fullName,phoneNumber,academicYearName,className,password,status
 FS1913-0002,Trần Gia Hân,0900000002,Năm học 2026,Lớp 10A1,,Đang học
@@ -80,9 +102,32 @@ export function StudentManagementPage() {
   const [fileName, setFileName] = useState('mau-hoc-sinh.csv')
   const [importOpen, setImportOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedRowKey, setSelectedRowKey] = useState<string>()
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [page, setPage] = useState(0)
 
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const parsed = useMemo(() => parseStudentsCsv(csvText), [csvText])
+
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      setDebouncedSearch(searchTerm.trim())
+      setPage(0)
+    }, 300)
+    return () => clearTimeout(handle)
+  }, [searchTerm])
+
+  const studentsQuery = useQuery({
+    queryKey: ['admin-students', 'list', debouncedSearch, page],
+    queryFn: () =>
+      fetchStudents({ search: debouncedSearch, page, size: pageSize }),
+    placeholderData: keepPreviousData,
+  })
+
+  const statsQuery = useQuery({
+    queryKey: ['admin-students', 'stats'],
+    queryFn: fetchStudentStats,
+  })
 
   const form = useForm<ImportDefaultsForm>({
     resolver: zodResolver(importDefaultsSchema),
@@ -94,61 +139,49 @@ export function StudentManagementPage() {
     },
   })
 
-  const mutation = useMutationImport({
+  const mutation = useMutation({
+    mutationFn: importStudents,
     onSuccess: (result) => {
-      setSelectedRowKey(result.rows[0] ? importResultKey(result.rows[0]) : undefined)
-      setImportOpen(false)
+      toast.success(
+        `Đã xử lý: ${result.createdStudents} tạo mới, ${result.updatedStudents} cập nhật, ${result.skippedRows} bỏ qua`,
+      )
+      queryClient.invalidateQueries({ queryKey: ['admin-students'] })
+    },
+    onError: (error) => {
+      toast.error(
+        error instanceof Error ? error.message : 'Nhập học sinh thất bại',
+      )
     },
   })
 
   const dropzone = useDropzone({
     multiple: false,
-    accept: {
-      'text/csv': ['.csv'],
-      'text/plain': ['.csv'],
-      'application/vnd.ms-excel': ['.csv'],
-    },
+    accept: spreadsheetDropzoneAccept,
     onDrop: async (acceptedFiles) => {
       const file = acceptedFiles[0]
       if (!file) {
         return
       }
 
-      setCsvText(await file.text())
+      try {
+        setCsvText(await fileToCsvText(file))
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : 'Không đọc được tệp',
+        )
+        return
+      }
       setFileName(file.name)
       toast.success(`Đã nạp tệp ${file.name}`)
     },
     onDropRejected: (rejections) => {
       toast.error(
-        rejections[0]?.errors[0]?.message ?? 'Tệp CSV không hợp lệ',
+        rejections[0]?.errors[0]?.message ?? 'Tệp CSV/Excel không hợp lệ',
       )
     },
   })
 
-  const visibleRows = useMemo(() => {
-    const rows = mutation.data?.rows ?? []
-    const query = searchTerm.trim().toLowerCase()
-
-    if (!query) {
-      return rows
-    }
-
-    return rows.filter((row) =>
-      [
-        row.studentCode,
-        row.phoneNumber,
-        row.message,
-        importStatusLabel(row.status),
-      ].some((value) => value.toLowerCase().includes(query)),
-    )
-  }, [mutation.data, searchTerm])
-
-  const selectedRow = useMemo(() => {
-    const rows = mutation.data?.rows ?? []
-    return (
-      rows.find((row) => importResultKey(row) === selectedRowKey) ?? rows[0]
-    )
-  }, [mutation.data, selectedRowKey])
+  const students = studentsQuery.data?.items ?? []
 
   const defaultsValid = importDefaultsSchema.safeParse(form.watch()).success
   const canSubmit =
@@ -178,24 +211,32 @@ export function StudentManagementPage() {
     })
   }
 
+  function changeImportOpen(open: boolean) {
+    setImportOpen(open)
+    if (!open) {
+      mutation.reset()
+    }
+  }
+
   return (
-    <div className="flex min-h-[calc(100vh-8rem)] flex-col gap-4">
-      <section className="flex flex-col gap-3 border-b pb-4 lg:flex-row lg:items-end lg:justify-between">
-        <div className="min-w-0 space-y-1">
-          <h2 className="text-lg font-semibold tracking-tight">
-            Danh sách học sinh
-          </h2>
-          <p className="max-w-2xl text-sm text-muted-foreground">
-            Quản lý hồ sơ, tài khoản đăng nhập và lớp học của học sinh.
-          </p>
-        </div>
+    <div className="flex h-[calc(100svh-8rem)] flex-col gap-4">
+      <StatsRow stats={statsQuery.data} isLoading={statsQuery.isPending} />
+
+      <section className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <Input
+          aria-label="Tìm học sinh"
+          value={searchTerm}
+          onChange={(event) => setSearchTerm(event.target.value)}
+          placeholder="Tìm mã, tên, số điện thoại, lớp"
+          className="sm:w-72"
+        />
 
         <div className="flex flex-wrap items-center gap-2">
           <Button type="button" variant="outline" onClick={downloadTemplate}>
             <Download className="size-4" />
             Tải mẫu CSV
           </Button>
-          <Sheet open={importOpen} onOpenChange={setImportOpen}>
+          <Sheet open={importOpen} onOpenChange={changeImportOpen}>
             <SheetTrigger asChild>
               <Button type="button">
                 <UploadCloud className="size-4" />
@@ -209,7 +250,9 @@ export function StudentManagementPage() {
               fileName={fileName}
               form={form}
               isPending={mutation.isPending}
+              result={mutation.data}
               onCsvTextChange={updateCsvText}
+              onResetResult={() => mutation.reset()}
               onSubmit={submit}
               parsed={parsed}
             />
@@ -217,17 +260,22 @@ export function StudentManagementPage() {
         </div>
       </section>
 
-      <section className="grid min-h-0 flex-1 gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <section className="flex min-h-0 flex-1 flex-col">
         <StudentListPanel
-          result={mutation.data}
-          rows={visibleRows}
+          isLoading={studentsQuery.isPending}
+          page={page}
+          result={studentsQuery.data}
           searchTerm={searchTerm}
-          selectedRowKey={selectedRow ? importResultKey(selectedRow) : undefined}
+          students={students}
           onOpenImport={() => setImportOpen(true)}
-          onSearchTermChange={setSearchTerm}
-          onSelectRow={(row) => setSelectedRowKey(importResultKey(row))}
+          onPageChange={setPage}
+          onSelectStudent={(student) =>
+            void navigate({
+              to: '/students/$studentId',
+              params: { studentId: student.id },
+            })
+          }
         />
-        <StudentDetailPanel result={mutation.data} row={selectedRow} />
       </section>
     </div>
   )
@@ -240,7 +288,9 @@ function ImportSheetContent({
   fileName,
   form,
   isPending,
+  result,
   onCsvTextChange,
+  onResetResult,
   onSubmit,
   parsed,
 }: {
@@ -250,7 +300,9 @@ function ImportSheetContent({
   fileName: string
   form: UseFormReturn<ImportDefaultsForm>
   isPending: boolean
+  result?: StudentImportResponse
   onCsvTextChange: (value: string) => void
+  onResetResult: () => void
   onSubmit: (values: ImportDefaultsForm) => void
   parsed: {
     rows: StudentImportRow[]
@@ -262,311 +314,337 @@ function ImportSheetContent({
       <SheetHeader className="border-b px-6 py-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-1">
-            <SheetTitle>Nhập học sinh từ CSV</SheetTitle>
+            <SheetTitle>
+              {result ? 'Kết quả nhập học sinh' : 'Nhập học sinh từ CSV'}
+            </SheetTitle>
             <SheetDescription>
-              Cấp tài khoản học sinh và gán dữ liệu vào năm học, lớp tương ứng.
+              {result
+                ? 'Kiểm tra từng dòng đã tạo, cập nhật hoặc bị bỏ qua.'
+                : 'Cấp tài khoản học sinh và gán dữ liệu vào năm học, lớp tương ứng.'}
             </SheetDescription>
           </div>
-          <p className="text-sm text-muted-foreground">
-            {fileName}
-          </p>
+          {result ? null : (
+            <p className="text-sm text-muted-foreground">{fileName}</p>
+          )}
         </div>
       </SheetHeader>
 
-      <Form {...form}>
-        <form
-          id="student-import-form"
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="min-h-0 flex-1"
-          noValidate
-        >
-          <div className="grid gap-6 px-6 py-5 xl:grid-cols-[minmax(0,1fr)_340px]">
-            <div className="min-w-0 space-y-4">
-              <div
-                {...dropzone.getRootProps({
-                  className: [
-                    'flex min-h-28 cursor-pointer flex-col items-center justify-center rounded-md border border-dashed p-5 text-center outline-none transition-colors',
-                    'hover:bg-accent focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/40',
-                    dropzone.isDragActive ? 'bg-accent' : '',
-                  ].join(' '),
-                })}
-              >
-                <input {...dropzone.getInputProps()} />
-                <UploadCloud className="size-7 text-muted-foreground" />
-                <p className="mt-3 text-sm font-medium">
-                  Kéo CSV vào đây hoặc bấm để chọn tệp
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Cột bắt buộc: studentCode, fullName, phoneNumber
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="csvText">Nội dung CSV</Label>
-                <Textarea
-                  id="csvText"
-                  value={csvText}
-                  onChange={(event) => onCsvTextChange(event.target.value)}
-                  className="min-h-44 resize-y font-mono text-xs leading-6 tabular-nums"
-                  spellCheck={false}
-                />
-              </div>
-
-              <ImportState rows={parsed.rows} errors={parsed.errors} />
-              <PreviewPanel rows={parsed.rows} />
-            </div>
-
-            <aside className="min-w-0 space-y-5">
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-sm font-medium">Thiết lập mặc định</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Dùng khi từng dòng CSV bỏ trống năm học, lớp hoặc mật khẩu.
+      {result ? (
+        <ImportResultView result={result} />
+      ) : (
+        <Form {...form}>
+          <form
+            id="student-import-form"
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="min-h-0 flex-1"
+            noValidate
+          >
+            <div className="grid gap-6 px-6 py-5 xl:grid-cols-[minmax(0,1fr)_340px]">
+              <div className="min-w-0 space-y-4">
+                <div
+                  {...dropzone.getRootProps({
+                    className: [
+                      'flex min-h-28 cursor-pointer flex-col items-center justify-center rounded-md border border-dashed p-5 text-center outline-none transition-colors',
+                      'hover:bg-accent focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/40',
+                      dropzone.isDragActive ? 'bg-accent' : '',
+                    ].join(' '),
+                  })}
+                >
+                  <input {...dropzone.getInputProps()} />
+                  <UploadCloud className="size-7 text-muted-foreground" />
+                  <p className="mt-3 text-sm font-medium">
+                    Kéo CSV/Excel vào đây hoặc bấm để chọn tệp
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Cột bắt buộc: studentCode, fullName, phoneNumber
                   </p>
                 </div>
 
-                <FormField
-                  control={form.control}
-                  name="academicYearName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Năm học mặc định</FormLabel>
-                      <FormControl>
-                        <Input autoComplete="off" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="csvText">Nội dung CSV</Label>
+                  <Textarea
+                    id="csvText"
+                    value={csvText}
+                    onChange={(event) => onCsvTextChange(event.target.value)}
+                    className="min-h-44 resize-y font-mono text-xs leading-6 tabular-nums"
+                    spellCheck={false}
+                  />
+                </div>
 
-                <FormField
-                  control={form.control}
-                  name="className"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Lớp mặc định</FormLabel>
-                      <FormControl>
-                        <Input autoComplete="off" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="defaultPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Mật khẩu tạm thời</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="password"
-                          autoComplete="new-password"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <ImportState rows={parsed.rows} errors={parsed.errors} />
+                <PreviewPanel rows={parsed.rows} />
               </div>
 
-              <Separator />
-              <CsvFormatTable />
-            </aside>
-          </div>
-        </form>
-      </Form>
+              <aside className="min-w-0 space-y-5">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-sm font-medium">Thiết lập mặc định</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Dùng khi từng dòng CSV bỏ trống năm học, lớp hoặc mật khẩu.
+                    </p>
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="academicYearName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Năm học mặc định</FormLabel>
+                        <FormControl>
+                          <Input autoComplete="off" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="className"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Lớp mặc định</FormLabel>
+                        <FormControl>
+                          <Input autoComplete="off" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="defaultPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Mật khẩu tạm thời</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="password"
+                            autoComplete="new-password"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <Separator />
+                <CsvFormatTable />
+              </aside>
+            </div>
+          </form>
+        </Form>
+      )}
 
       <SheetFooter className="border-t px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-xs text-muted-foreground">
-          Tối đa 500 dòng cho mỗi lần nhập.
-        </p>
-        <div className="flex flex-col-reverse gap-2 sm:flex-row">
-          <SheetClose asChild>
-            <Button type="button" variant="outline">
-              Hủy
-            </Button>
-          </SheetClose>
-          <Button type="submit" form="student-import-form" disabled={!canSubmit}>
-            {isPending ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <FileSpreadsheet className="size-4" />
-            )}
-            Nhập học sinh
-          </Button>
-        </div>
+        {result ? (
+          <>
+            <p className="text-xs text-muted-foreground">
+              {result.totalRows} dòng đã xử lý.
+            </p>
+            <div className="flex flex-col-reverse gap-2 sm:flex-row">
+              <Button type="button" variant="outline" onClick={onResetResult}>
+                Nhập lần khác
+              </Button>
+              <SheetClose asChild>
+                <Button type="button">Đóng</Button>
+              </SheetClose>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="text-xs text-muted-foreground">
+              Tối đa 500 dòng cho mỗi lần nhập.
+            </p>
+            <div className="flex flex-col-reverse gap-2 sm:flex-row">
+              <SheetClose asChild>
+                <Button type="button" variant="outline">
+                  Hủy
+                </Button>
+              </SheetClose>
+              <Button
+                type="submit"
+                form="student-import-form"
+                disabled={!canSubmit}
+              >
+                {isPending ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <FileSpreadsheet className="size-4" />
+                )}
+                Nhập học sinh
+              </Button>
+            </div>
+          </>
+        )}
       </SheetFooter>
     </SheetContent>
   )
 }
 
-function StudentListPanel({
-  result,
-  rows,
-  searchTerm,
-  selectedRowKey,
-  onOpenImport,
-  onSearchTermChange,
-  onSelectRow,
-}: {
-  result?: StudentImportResponse
-  rows: StudentImportRowResult[]
-  searchTerm: string
-  selectedRowKey?: string
-  onOpenImport: () => void
-  onSearchTermChange: (value: string) => void
-  onSelectRow: (row: StudentImportRowResult) => void
-}) {
+function ImportResultView({ result }: { result: StudentImportResponse }) {
   return (
-    <div className="flex min-h-[520px] min-w-0 flex-col rounded-md border bg-background">
-      <div className="flex flex-col gap-3 border-b p-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="min-w-0">
-          <h3 className="text-sm font-semibold">Danh sách học sinh</h3>
-          <p className="text-sm text-muted-foreground">
-            {result
-              ? 'Đang hiển thị kết quả nhập gần nhất.'
-              : 'Danh sách sẽ kết nối API học sinh ở bước tiếp theo.'}
-          </p>
-        </div>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <Input
-            aria-label="Tìm học sinh"
-            value={searchTerm}
-            onChange={(event) => onSearchTermChange(event.target.value)}
-            placeholder="Tìm mã, số điện thoại, ghi chú"
-            className="sm:w-72"
-          />
-          <Button type="button" variant="outline" onClick={onOpenImport}>
-            <UploadCloud className="size-4" />
-            Nhập CSV
-          </Button>
-        </div>
+    <div className="space-y-4 px-6 py-5">
+      <div className="grid gap-3 sm:grid-cols-4">
+        <SummaryTile label="Tài khoản mới" value={result.createdUsers} />
+        <SummaryTile label="Học sinh mới" value={result.createdStudents} />
+        <SummaryTile label="Đã cập nhật" value={result.updatedStudents} />
+        <SummaryTile label="Bị bỏ qua" value={result.skippedRows} />
       </div>
 
-      <div className="min-h-0 flex-1 overflow-auto">
-        {result ? (
+      <div className="rounded-md border">
+        <div className="max-h-[28rem] overflow-auto">
           <Table>
             <TableHeader className="sticky top-0 bg-background">
               <TableRow>
                 <TableHead className="w-16">STT</TableHead>
                 <TableHead>Mã học sinh</TableHead>
                 <TableHead>Số điện thoại</TableHead>
-                <TableHead>Trạng thái</TableHead>
+                <TableHead>Kết quả</TableHead>
                 <TableHead>Ghi chú</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {rows.map((row) => {
-                const key = importResultKey(row)
-                return (
-                  <TableRow
-                    key={key}
-                    data-state={key === selectedRowKey ? 'selected' : undefined}
-                    tabIndex={0}
-                    className="cursor-pointer"
-                    onClick={() => onSelectRow(row)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter' || event.key === ' ') {
-                        onSelectRow(row)
-                      }
-                    }}
-                  >
-                    <TableCell className="tabular-nums">
-                      {row.rowNumber}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {row.studentCode}
-                    </TableCell>
-                    <TableCell className="tabular-nums">
-                      {row.phoneNumber}
-                    </TableCell>
-                    <TableCell>
-                      <StatusBadge row={row} />
-                    </TableCell>
-                    <TableCell className="max-w-md truncate text-muted-foreground">
-                      {row.message}
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
+              {result.rows.map((row) => (
+                <TableRow key={`${row.rowNumber}-${row.studentCode}`}>
+                  <TableCell className="tabular-nums">{row.rowNumber}</TableCell>
+                  <TableCell className="font-medium">
+                    {row.studentCode}
+                  </TableCell>
+                  <TableCell className="tabular-nums">
+                    {row.phoneNumber}
+                  </TableCell>
+                  <TableCell>
+                    <ImportStatusBadge status={row.status} />
+                  </TableCell>
+                  <TableCell className="max-w-md truncate text-muted-foreground">
+                    {row.message}
+                  </TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
-        ) : (
-          <Empty className="min-h-[360px] border-0">
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <Users />
-              </EmptyMedia>
-              <EmptyTitle>Chưa có dữ liệu học sinh</EmptyTitle>
-              <EmptyDescription>
-                Nhập CSV để cấp tài khoản học sinh trước khi mở rộng API danh
-                sách.
-              </EmptyDescription>
-            </EmptyHeader>
-          </Empty>
-        )}
-      </div>
-
-      <div className="flex items-center justify-between border-t px-3 py-2 text-xs text-muted-foreground">
-        <span>{result ? `${rows.length}/${result.totalRows} dòng` : '0 dòng'}</span>
-        <span>{result ? 'Kết quả nhập gần nhất' : 'Chưa có lần nhập'}</span>
+        </div>
       </div>
     </div>
   )
 }
 
-function StudentDetailPanel({
-  result,
-  row,
+function SummaryTile({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-md border p-3">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="mt-1 text-xl font-semibold tabular-nums">{value}</p>
+    </div>
+  )
+}
+
+function StatsRow({
+  stats,
+  isLoading,
 }: {
-  result?: StudentImportResponse
-  row?: StudentImportRowResult
+  stats?: AdminStudentStats
+  isLoading: boolean
+}) {
+  const items = [
+    { label: 'Tổng học sinh', value: stats?.totalStudents, icon: Users },
+    { label: 'Đang học', value: stats?.activeStudents, icon: UserCheck },
+    { label: 'Tài khoản khóa', value: stats?.lockedAccounts, icon: Lock },
+    { label: 'Số lớp', value: stats?.totalClasses, icon: School },
+  ]
+
+  return (
+    <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      {items.map((item) => (
+        <div
+          key={item.label}
+          className="flex items-center gap-3 rounded-md border bg-background p-4"
+        >
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted">
+            <item.icon className="size-4 text-muted-foreground" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs text-muted-foreground">{item.label}</p>
+            {isLoading ? (
+              <Skeleton className="mt-1 h-6 w-12" />
+            ) : (
+              <p className="text-xl font-semibold tabular-nums">
+                {item.value ?? 0}
+              </p>
+            )}
+          </div>
+        </div>
+      ))}
+    </section>
+  )
+}
+
+function StudentListPanel({
+  isLoading,
+  page,
+  result,
+  searchTerm,
+  students,
+  onOpenImport,
+  onPageChange,
+  onSelectStudent,
+}: {
+  isLoading: boolean
+  page: number
+  result?: AdminStudentListResponse
+  searchTerm: string
+  students: AdminStudent[]
+  onOpenImport: () => void
+  onPageChange: (page: number) => void
+  onSelectStudent: (student: AdminStudent) => void
 }) {
   return (
-    <aside className="flex min-h-[520px] min-w-0 flex-col rounded-md border bg-background">
-      <div className="border-b p-4">
-        <h3 className="text-sm font-semibold">Chi tiết học sinh</h3>
-        <p className="text-sm text-muted-foreground">
-          Thông tin của dòng đang chọn trong danh sách.
-        </p>
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col rounded-md border bg-background">
+      <div className="min-h-0 flex-1 overflow-auto">
+        <DataTable
+          columns={studentColumns}
+          data={students}
+          isLoading={isLoading}
+          onRowClick={onSelectStudent}
+          empty={
+            <Empty className="min-h-[360px] border-0">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <Users />
+                </EmptyMedia>
+                <EmptyTitle>
+                  {searchTerm
+                    ? 'Không tìm thấy học sinh'
+                    : 'Chưa có dữ liệu học sinh'}
+                </EmptyTitle>
+                <EmptyDescription>
+                  {searchTerm
+                    ? 'Thử từ khóa khác hoặc xóa ô tìm kiếm.'
+                    : 'Nhập CSV để cấp tài khoản học sinh đầu tiên.'}
+                </EmptyDescription>
+              </EmptyHeader>
+              {searchTerm ? null : (
+                <Button type="button" variant="outline" onClick={onOpenImport}>
+                  <UploadCloud className="size-4" />
+                  Nhập CSV
+                </Button>
+              )}
+            </Empty>
+          }
+        />
       </div>
 
-      {row ? (
-        <div className="min-h-0 flex-1 space-y-5 overflow-auto p-4">
-          <div className="space-y-3">
-            <DetailRow label="Mã học sinh" value={row.studentCode} />
-            <DetailRow label="Số điện thoại" value={row.phoneNumber} />
-            <DetailRow label="Trạng thái" value={importStatusLabel(row.status)} />
-            <DetailRow label="Ghi chú" value={row.message} />
-          </div>
-
-          {result ? (
-            <>
-              <Separator />
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium">Tổng hợp lần nhập</h4>
-                <ResultSummary result={result} />
-              </div>
-            </>
-          ) : null}
-        </div>
-      ) : (
-        <Empty className="min-h-[360px] border-0">
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <Users />
-            </EmptyMedia>
-            <EmptyTitle>Chưa chọn học sinh</EmptyTitle>
-            <EmptyDescription>
-              Chọn một dòng trong danh sách để xem chi tiết.
-            </EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      )}
-    </aside>
+      <DataTablePagination
+        page={page}
+        totalPages={result?.totalPages ?? 0}
+        totalItems={result?.totalItems ?? 0}
+        unitLabel="học sinh"
+        onPageChange={onPageChange}
+      />
+    </div>
   )
 }
 
@@ -663,21 +741,6 @@ function PreviewPanel({ rows }: { rows: StudentImportRow[] }) {
   )
 }
 
-function ResultSummary({ result }: { result: StudentImportResponse }) {
-  return (
-    <div className="rounded-md border">
-      <Table>
-        <TableBody>
-          <SummaryRow label="Tài khoản mới" value={result.createdUsers} />
-          <SummaryRow label="Học sinh mới" value={result.createdStudents} />
-          <SummaryRow label="Đã cập nhật" value={result.updatedStudents} />
-          <SummaryRow label="Bị bỏ qua" value={result.skippedRows} />
-        </TableBody>
-      </Table>
-    </div>
-  )
-}
-
 function CsvFormatTable() {
   return (
     <div className="space-y-2">
@@ -699,28 +762,6 @@ function CsvFormatTable() {
   )
 }
 
-function DetailRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="space-y-1">
-      <p className="text-xs font-medium uppercase text-muted-foreground">
-        {label}
-      </p>
-      <p className="break-words text-sm">{value}</p>
-    </div>
-  )
-}
-
-function SummaryRow({ label, value }: { label: string; value: number }) {
-  return (
-    <TableRow>
-      <TableCell className="text-muted-foreground">{label}</TableCell>
-      <TableCell className="text-right font-semibold tabular-nums">
-        {value}
-      </TableCell>
-    </TableRow>
-  )
-}
-
 function FormatRow({ label, value }: { label: string; value: string }) {
   return (
     <TableRow>
@@ -734,49 +775,18 @@ function FormatRow({ label, value }: { label: string; value: string }) {
   )
 }
 
-function StatusBadge({ row }: { row: StudentImportRowResult }) {
-  if (row.status === 'CREATED') {
+function ImportStatusBadge({
+  status,
+}: {
+  status: StudentImportRowResult['status']
+}) {
+  if (status === 'CREATED') {
     return <Badge>Tạo mới</Badge>
   }
-  if (row.status === 'UPDATED') {
+  if (status === 'UPDATED') {
     return <Badge variant="secondary">Cập nhật</Badge>
   }
   return <Badge variant="outline">Bỏ qua</Badge>
-}
-
-function useMutationImport({
-  onSuccess,
-}: {
-  onSuccess?: (result: StudentImportResponse) => void
-} = {}) {
-  return useMutation({
-    mutationFn: importStudents,
-    onSuccess: (result) => {
-      toast.success(
-        `Đã xử lý: ${result.createdStudents} tạo mới, ${result.updatedStudents} cập nhật`,
-      )
-      onSuccess?.(result)
-    },
-    onError: (error) => {
-      toast.error(
-        error instanceof Error ? error.message : 'Nhập học sinh thất bại',
-      )
-    },
-  })
-}
-
-function importResultKey(row: StudentImportRowResult) {
-  return `${row.rowNumber}-${row.studentCode}-${row.phoneNumber}`
-}
-
-function importStatusLabel(status: StudentImportRowResult['status']) {
-  if (status === 'CREATED') {
-    return 'Tạo mới'
-  }
-  if (status === 'UPDATED') {
-    return 'Cập nhật'
-  }
-  return 'Bỏ qua'
 }
 
 function downloadTemplate() {

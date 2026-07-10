@@ -1,4 +1,5 @@
 import { authorizedJson } from './api.ts'
+import { splitCsvLine } from './csv.ts'
 
 export type StudentImportRow = {
   studentCode: string
@@ -105,37 +106,4 @@ export function importStudents(request: StudentImportRequest) {
 function optionalValue(value: string | undefined) {
   const trimmed = value?.trim()
   return trimmed ? trimmed : undefined
-}
-
-function splitCsvLine(line: string) {
-  const values: string[] = []
-  let current = ''
-  let inQuotes = false
-
-  for (let index = 0; index < line.length; index += 1) {
-    const char = line[index]
-    const nextChar = line[index + 1]
-
-    if (char === '"' && inQuotes && nextChar === '"') {
-      current += '"'
-      index += 1
-      continue
-    }
-
-    if (char === '"') {
-      inQuotes = !inQuotes
-      continue
-    }
-
-    if (char === ',' && !inQuotes) {
-      values.push(current)
-      current = ''
-      continue
-    }
-
-    current += char
-  }
-
-  values.push(current)
-  return values
 }
