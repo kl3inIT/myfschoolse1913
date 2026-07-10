@@ -78,6 +78,18 @@ public class SchoolNotification {
 		return category;
 	}
 
+	public SchoolNotificationAudience getAudience() {
+		return audience;
+	}
+
+	public boolean isActive() {
+		return active;
+	}
+
+	public void deactivate() {
+		this.active = false;
+	}
+
 	public Instant getPublishedAt() {
 		return publishedAt;
 	}
