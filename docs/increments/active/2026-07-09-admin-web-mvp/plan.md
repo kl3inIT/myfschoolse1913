@@ -93,6 +93,16 @@ accounts because students do not self-register in the mobile app.
 2. Backend `GET /api/admin/timetable` and `POST /api/admin/timetable/import`
    with auto-created semesters/classes/subjects and Vietnamese skip reasons.
 
+## Eleventh Slice (built)
+
+1. Application review at `/applications`: stat cards, status filter
+   (defaults to pending), and inline approve/reject actions with a confirm
+   dialog and optional reviewer note — completing the last sidebar
+   placeholder besides "Tổng quan".
+2. Backend `GET /api/admin/applications` (+`/stats`) and
+   `PUT /api/admin/applications/{id}` reviewing PENDING applications on the
+   existing `StudentApplication` model (409 when already reviewed).
+
 Current behavior is documented in `docs/specs/domains/admin-web.md`.
 
 ## Deferred

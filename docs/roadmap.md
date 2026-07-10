@@ -27,7 +27,8 @@ See
   search/paging/stat cards, student detail page with in-place edit,
   notification publishing with recall, academic year/class master data,
   semester grade list + CSV/Excel import, timetable list + CSV/Excel
-  import, a shared list/toolbar/dialog
+  import with a per-class weekly grid, application review
+  (approve/reject with notes), a shared list/toolbar/dialog
   pattern (`docs/guidelines/admin-web-patterns.md`) with FPT branding, and
   immediate redirect to login on expired sessions.
 

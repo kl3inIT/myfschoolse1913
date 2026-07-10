@@ -146,11 +146,37 @@ admin APIs. Product intent lives in
   grid — no calendar library; the OpenEduCat-style multi-view pattern for
   the same resource.
 
+## Application Review
+
+- Route `/applications` ("Đơn từ" in the sidebar).
+- `GET /api/admin/applications?search=&status=&page=&size=` returns
+  `{page, size, totalItems, totalPages, items[]}` sorted by `createdAt`
+  descending. Each item: `id`, student identity (code/name/class/year),
+  `type` (`ABSENCE|LATE_ARRIVAL|EARLY_LEAVE|DOCUMENT_REQUEST|EARLY_PICKUP|
+  MEAL_REGISTRATION`), `status` (`PENDING|APPROVED|REJECTED`), `targetDate`,
+  `requestedTime`, `reason`, `details`, `reviewerNote`, `createdAt`,
+  `reviewedAt`. `search` matches student code, name, class, or reason;
+  `status` filters by one status (400 on an unknown value, blank = all);
+  `size` clamped 1..200.
+- `GET /api/admin/applications/stats` returns
+  `{totalApplications, pendingApplications, approvedApplications,
+  rejectedApplications}`.
+- `PUT /api/admin/applications/{id}` reviews a pending application:
+  `{decision: APPROVED|REJECTED, reviewerNote?}` (note ≤500). 404 for an
+  unknown id, 409 when the application was already reviewed, 400 when the
+  decision is `PENDING`. The review stamps `reviewedAt` and the student app
+  sees the new status on next fetch (reviewer note stays admin-only).
+- The page (`ApplicationManagementPage`) shows four stat cards, a debounced
+  search box plus a status filter select (defaults to "Chờ duyệt"), and the
+  shared `DataTable` with status badges and the reviewer note under the
+  badge. Pending rows expose inline "Duyệt"/"Từ chối" actions that open a
+  centered confirm dialog (application summary + optional reviewer note);
+  confirming invalidates the `['admin-applications']` queries.
+
 ## Notification Publishing
 
-- Route `/notifications`, reachable from the sidebar ("Học sinh" and
-  "Thông báo" are real links with route-based active state; "Tổng quan" and
-  "Đơn từ" remain disabled placeholders).
+- Route `/notifications`, reachable from the sidebar (all items except the
+  "Tổng quan" placeholder are real links with route-based active state).
 - `POST /api/admin/notifications` publishes a `SchoolNotification`
   (`title` ≤160, `body` ≤1000, category `ACADEMIC|EVENT|SERVICE|GENERAL`,
   audience `ALL_STUDENTS|HIGH_SCHOOL`, optional `pinned`); `publishedAt` is

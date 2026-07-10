@@ -140,6 +140,9 @@ Admin APIs (require `ROLE_ADMIN`):
 - `POST /api/admin/grades/import`
 - `GET /api/admin/timetable?search=&page=&size=`
 - `POST /api/admin/timetable/import`
+- `GET /api/admin/applications?search=&status=&page=&size=`
+- `GET /api/admin/applications/stats`
+- `PUT /api/admin/applications/{id}` (review: approve/reject)
 
 ## Runtime Configuration
 
