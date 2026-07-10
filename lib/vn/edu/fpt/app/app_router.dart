@@ -5,6 +5,7 @@ import 'package:myfschoolse1913/vn/edu/fpt/app/app_session_controller.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/applications/views/applications_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/applications/views/create_application_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/account/views/account_page.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/ui/features/assistant/views/assistant_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/auth/views/forgot_password_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/auth/views/login_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/auth/views/reset_password_page.dart';
@@ -25,6 +26,7 @@ abstract final class AppRoutes {
   static const verifyOtp = '/forgot-password/verify';
   static const resetPassword = '/forgot-password/reset';
   static const home = '/home';
+  static const assistant = '/assistant';
   static const semesterGrades = '/semester-grades';
   static const schedule = '/schedule';
   static const events = '/events';
@@ -63,6 +65,7 @@ GoRouter createAppRouter({required AppSessionController sessionController}) {
       final isLoginRoute = path == AppRoutes.login;
       final isProtectedRoute =
           path == AppRoutes.home ||
+          path == AppRoutes.assistant ||
           path == AppRoutes.semesterGrades ||
           path == AppRoutes.schedule ||
           path == AppRoutes.events ||
@@ -153,6 +156,17 @@ GoRouter createAppRouter({required AppSessionController sessionController}) {
             child: HomePage(
               dashboardRepository: services.dashboardRepository,
               sessionController: services.sessionController,
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.assistant,
+        pageBuilder: (context, state) {
+          final services = AppDependencies.of(context);
+          return NoTransitionPage(
+            child: AssistantPage(
+              assistantApiService: services.assistantApiService,
             ),
           );
         },

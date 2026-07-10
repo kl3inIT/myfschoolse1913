@@ -354,6 +354,8 @@ class _FeatureGrid extends StatelessWidget {
         context.go(AppRoutes.applications);
       case 'CLUBS':
         context.go(AppRoutes.clubs);
+      case 'ASSISTANT':
+        context.go(AppRoutes.assistant);
     }
   }
 }
@@ -411,6 +413,7 @@ class _FeatureCard extends StatelessWidget {
       'EVENTS' => Icons.notifications_outlined,
       'APPLICATIONS' => Icons.description_outlined,
       'CLUBS' => Icons.groups_outlined,
+      'ASSISTANT' => Icons.smart_toy_outlined,
       _ => Icons.apps_outlined,
     };
   }

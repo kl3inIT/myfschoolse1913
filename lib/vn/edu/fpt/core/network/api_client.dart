@@ -40,6 +40,53 @@ class ApiClient {
     return _decodeObject(response.body);
   }
 
+  /// Posts JSON and yields the `data:` payload of each Server-Sent Event as
+  /// it arrives, until the server closes the stream.
+  Stream<String> postEventStream(
+    String path, {
+    Map<String, Object?>? body,
+    String? bearerToken,
+  }) async* {
+    final request = http.Request('POST', _resolve(path))
+      ..headers.addAll({
+        'Accept': 'text/event-stream',
+        'Content-Type': 'application/json',
+        if (bearerToken != null) 'Authorization': 'Bearer $bearerToken',
+      })
+      ..body = jsonEncode(body ?? const <String, Object?>{});
+
+    final response = await _client.send(request);
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      final errorBody = await response.stream.bytesToString();
+      throw ApiException(
+        statusCode: response.statusCode,
+        message: _extractMessage(errorBody),
+      );
+    }
+
+    var buffer = '';
+    await for (final chunk in response.stream.transform(utf8.decoder)) {
+      buffer += chunk;
+      while (true) {
+        final separator = buffer.indexOf('\n\n');
+        if (separator == -1) {
+          break;
+        }
+        final rawEvent = buffer.substring(0, separator);
+        buffer = buffer.substring(separator + 2);
+        final data = rawEvent
+            .split('\n')
+            .map((line) => line.endsWith('\r') ? line.substring(0, line.length - 1) : line)
+            .where((line) => line.startsWith('data:'))
+            .map((line) => line.substring(5).trimLeft())
+            .join('\n');
+        if (data.isNotEmpty) {
+          yield data;
+        }
+      }
+    }
+  }
+
   Future<void> postJsonVoid(
     String path, {
     Map<String, Object?>? body,

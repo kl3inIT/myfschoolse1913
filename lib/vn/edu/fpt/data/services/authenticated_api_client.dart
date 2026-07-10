@@ -43,6 +43,41 @@ class AuthenticatedApiClient {
     });
   }
 
+  /// Streams SSE data payloads with the same 401-refresh behavior as the
+  /// JSON helpers. A 401 can only surface before the first event (the server
+  /// rejects the request up front), so retrying never duplicates output.
+  Stream<String> postEventStream(
+    String path, {
+    Map<String, Object?>? body,
+  }) async* {
+    final accessToken = await _tokenStorage.readAccessToken();
+    if (accessToken == null) {
+      throw const ApiException(
+        statusCode: 401,
+        message: 'Phiên đăng nhập đã hết hạn',
+      );
+    }
+
+    try {
+      yield* _apiClient.postEventStream(
+        path,
+        body: body,
+        bearerToken: accessToken,
+      );
+    } on ApiException catch (exception) {
+      if (exception.statusCode != 401) {
+        rethrow;
+      }
+
+      final refreshedSession = await _refreshSession();
+      yield* _apiClient.postEventStream(
+        path,
+        body: body,
+        bearerToken: refreshedSession.accessToken,
+      );
+    }
+  }
+
   Future<void> postJsonVoid(String path, {Map<String, Object?>? body}) {
     return _sendWithAuth((accessToken) {
       return _apiClient.postJsonVoid(

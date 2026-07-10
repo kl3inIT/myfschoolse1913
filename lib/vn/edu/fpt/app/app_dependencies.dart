@@ -14,6 +14,7 @@ import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/schedule_repository
 import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/user_repository.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/services/authenticated_api_client.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/services/applications_api_service.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/data/services/assistant_api_service.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/services/auth_api_service.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/services/clubs_api_service.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/services/dashboard_api_service.dart';
@@ -31,6 +32,7 @@ class AppServices {
     required this.authApiService,
     required this.authenticatedApiClient,
     required this.applicationsApiService,
+    required this.assistantApiService,
     required this.clubsApiService,
     required this.dashboardApiService,
     required this.eventsApiService,
@@ -64,6 +66,7 @@ class AppServices {
     final applicationsApiService = ApplicationsApiService(
       authenticatedApiClient,
     );
+    final assistantApiService = AssistantApiService(authenticatedApiClient);
     final clubsApiService = ClubsApiService(authenticatedApiClient);
     final dashboardApiService = DashboardApiService(authenticatedApiClient);
     final eventsApiService = EventsApiService(authenticatedApiClient);
@@ -107,6 +110,7 @@ class AppServices {
       authApiService: authApiService,
       authenticatedApiClient: authenticatedApiClient,
       applicationsApiService: applicationsApiService,
+      assistantApiService: assistantApiService,
       clubsApiService: clubsApiService,
       dashboardApiService: dashboardApiService,
       eventsApiService: eventsApiService,
@@ -133,6 +137,7 @@ class AppServices {
   final AuthApiService authApiService;
   final AuthenticatedApiClient authenticatedApiClient;
   final ApplicationsApiService applicationsApiService;
+  final AssistantApiService assistantApiService;
   final ClubsApiService clubsApiService;
   final DashboardApiService dashboardApiService;
   final EventsApiService eventsApiService;
