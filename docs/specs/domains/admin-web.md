@@ -1,8 +1,8 @@
 # Admin Web
 
 Current behavior of the React admin surface in `admin-web/` and its backend
-admin APIs. Product intent lives in
-`docs/increments/active/2026-07-09-admin-web-mvp/`.
+admin APIs. The originating increment history lives in
+`docs/increments/completed/2026-07-09-admin-web-mvp/`.
 
 ## Login
 

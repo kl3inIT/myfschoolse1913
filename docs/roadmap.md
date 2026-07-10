@@ -8,11 +8,11 @@ descriptions live in `docs/vision.md` or the increment's own design.
 | Increment | Status | Target |
 | --- | --- | --- |
 | Basic mobile and Flutter Web MVP | In progress | 2026-07-12 |
-| Admin web MVP | In progress | - |
 
-See
-`docs/increments/active/2026-07-09-basic-mobile-web-mvp/plan.md` and
-`docs/increments/active/2026-07-09-admin-web-mvp/plan.md`.
+See `docs/increments/active/2026-07-09-basic-mobile-web-mvp/plan.md`.
+
+Admin web MVP completed 2026-07-10 — history in
+`docs/increments/completed/2026-07-09-admin-web-mvp/`.
 
 ## Recently Built
 
@@ -36,8 +36,8 @@ See
 ## Backlog
 
 - Make local backend/database quickstart repeatable.
-- Add a minimal React admin UI after the student MVP is stable.
-- Add backend integration tests for the student-facing API surface.
+- Add backend integration tests for the student-facing and admin API
+  surfaces (see `docs/tests/domains/admin-web.md` for the admin gap list).
 - Add end-to-end browser checks for the demo flow.
 - Add docs/screenshots for the teacher review demo path.
 - Fix Android NDK version warning if Android rebuilds become noisy.
