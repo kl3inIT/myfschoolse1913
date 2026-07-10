@@ -38,7 +38,8 @@ public class StudentDashboardService {
 						new StudentDashboardResponse.FeatureShortcut("SCHEDULE", "Lịch học"),
 						new StudentDashboardResponse.FeatureShortcut("EVENTS", "Sự kiện"),
 						new StudentDashboardResponse.FeatureShortcut("APPLICATIONS", "Đơn từ"),
-						new StudentDashboardResponse.FeatureShortcut("CLUBS", "CLB")
+						new StudentDashboardResponse.FeatureShortcut("CLUBS", "CLB"),
+						new StudentDashboardResponse.FeatureShortcut("ASSISTANT", "Trợ lý AI")
 				),
 				scheduleService.getTodayScheduleItems(student)
 		);

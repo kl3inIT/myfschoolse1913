@@ -9,6 +9,7 @@ version = "0.0.1-SNAPSHOT"
 description = "Backend API for MyFSchoolSE1913"
 
 extra["springModulithVersion"] = "2.1.0"
+extra["springAiVersion"] = "2.0.0"
 
 java {
 	toolchain {
@@ -31,6 +32,8 @@ dependencies {
 	implementation("org.flywaydb:flyway-database-postgresql")
 	implementation("org.springframework.security:spring-security-oauth2-jose")
 	implementation("org.springframework.modulith:spring-modulith-starter-core")
+	implementation("org.springframework.ai:spring-ai-starter-model-openai")
+	implementation("org.springframework.ai:spring-ai-starter-model-chat-memory-repository-jdbc")
 	runtimeOnly("org.postgresql:postgresql")
 	testImplementation("org.springframework.boot:spring-boot-starter-actuator-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
@@ -46,6 +49,7 @@ dependencies {
 dependencyManagement {
 	imports {
 		mavenBom("org.springframework.modulith:spring-modulith-bom:${property("springModulithVersion")}")
+		mavenBom("org.springframework.ai:spring-ai-bom:${property("springAiVersion")}")
 	}
 }
 
