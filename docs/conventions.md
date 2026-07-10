@@ -31,6 +31,10 @@
 - Use `flutter_secure_storage` through `TokenStorage`; do not access tokens
   directly in widgets.
 - Use existing theme/color/assets before adding new styling constants.
+- Pages size themselves with `pageContentMaxWidth`/`pageBackdropColor` from
+  `ui/core/layout/page_frame.dart`: content fills windows under 600lp
+  (all phones) and becomes a centered 480lp column on wider windows.
+  Never hard-code a design-frame width like 390.
 - User-facing UI text is Vietnamese with correct diacritics.
 - Route, file, and internal names are English.
 
