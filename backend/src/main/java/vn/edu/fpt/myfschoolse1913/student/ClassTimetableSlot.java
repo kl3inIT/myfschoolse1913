@@ -94,6 +94,26 @@ public class ClassTimetableSlot {
 		this.endsAt = endsAt;
 	}
 
+	public UUID getId() {
+		return id;
+	}
+
+	public SchoolClass getSchoolClass() {
+		return schoolClass;
+	}
+
+	public Semester getSemester() {
+		return semester;
+	}
+
+	public Subject getSubject() {
+		return subject;
+	}
+
+	public Instant getUpdatedAt() {
+		return updatedAt;
+	}
+
 	public int getDayIndex() {
 		return dayIndex;
 	}
@@ -124,5 +144,24 @@ public class ClassTimetableSlot {
 
 	public LocalTime getEndsAt() {
 		return endsAt;
+	}
+
+	public void updateDetails(
+			ClassTimetableSlotType slotType,
+			String title,
+			Subject subject,
+			String roomName,
+			String teacherName,
+			LocalTime startsAt,
+			LocalTime endsAt
+	) {
+		this.slotType = slotType;
+		this.title = title;
+		this.subject = subject;
+		this.roomName = roomName;
+		this.teacherName = teacherName;
+		this.startsAt = startsAt;
+		this.endsAt = endsAt;
+		this.updatedAt = Instant.now();
 	}
 }
