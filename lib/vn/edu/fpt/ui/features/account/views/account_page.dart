@@ -8,6 +8,7 @@ import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/user_repository.dar
 import 'package:myfschoolse1913/vn/edu/fpt/domain/models/app_user.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/domain/models/user_role.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/core/widgets/student_bottom_navigation.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/ui/core/widgets/student_top_app_bar.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/account/view_models/account_view_model.dart';
 
 class AccountPage extends StatefulWidget {
@@ -87,6 +88,14 @@ class _AccountPageState extends State<AccountPage> {
     }
   }
 
+  void _showComingSoon() {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(content: Text('Tính năng đang được phát triển.')),
+      );
+  }
+
   void _onDestinationSelected(int index) {
     switch (index) {
       case 0:
@@ -109,6 +118,7 @@ class _AccountPageState extends State<AccountPage> {
     return Scaffold(
       backgroundColor: pageBackdropColor(context),
       body: SafeArea(
+        top: false,
         child: Center(
           child: ConstrainedBox(
             constraints: BoxConstraints(maxWidth: pageContentMaxWidth(context)),
@@ -121,7 +131,10 @@ class _AccountPageState extends State<AccountPage> {
 
                   return Column(
                     children: [
-                      const _AccountHeader(),
+                      StudentTopAppBar(
+                        title: 'Tài khoản',
+                        onBack: () => context.go(AppRoutes.home),
+                      ),
                       Expanded(
                         child: _AccountBody(
                           user: state.user,
@@ -130,6 +143,9 @@ class _AccountPageState extends State<AccountPage> {
                           errorMessage: state.errorMessage,
                           onRetry: _loadAccount,
                           onLogout: _confirmLogout,
+                          onOpenProfile: () =>
+                              context.go(AppRoutes.accountProfile),
+                          onComingSoon: _showComingSoon,
                         ),
                       ),
                       StudentBottomNavigation(
@@ -148,29 +164,6 @@ class _AccountPageState extends State<AccountPage> {
   }
 }
 
-class _AccountHeader extends StatelessWidget {
-  const _AccountHeader();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 96,
-      width: double.infinity,
-      color: FptColors.orangeDeep,
-      alignment: Alignment.centerLeft,
-      padding: const EdgeInsets.fromLTRB(24, 28, 24, 0),
-      child: Text(
-        'Tài khoản',
-        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-          color: Colors.white,
-          fontWeight: FontWeight.w800,
-          height: 1.2,
-        ),
-      ),
-    );
-  }
-}
-
 class _AccountBody extends StatelessWidget {
   const _AccountBody({
     required this.user,
@@ -179,6 +172,8 @@ class _AccountBody extends StatelessWidget {
     required this.errorMessage,
     required this.onRetry,
     required this.onLogout,
+    required this.onOpenProfile,
+    required this.onComingSoon,
   });
 
   final AppUser? user;
@@ -187,6 +182,8 @@ class _AccountBody extends StatelessWidget {
   final String? errorMessage;
   final VoidCallback onRetry;
   final VoidCallback onLogout;
+  final VoidCallback onOpenProfile;
+  final VoidCallback onComingSoon;
 
   @override
   Widget build(BuildContext context) {
@@ -209,22 +206,25 @@ class _AccountBody extends StatelessWidget {
           _AccountWarning(message: errorMessage!, onRetry: onRetry),
         ],
         const SizedBox(height: 28),
-        const _AccountListTile(
+        _AccountListTile(
           icon: Icons.badge_outlined,
           title: 'Thông tin học sinh',
           subtitle: 'Hồ sơ, lớp học, năm học',
+          onTap: onOpenProfile,
         ),
         const SizedBox(height: 10),
-        const _AccountListTile(
+        _AccountListTile(
           icon: Icons.settings_outlined,
           title: 'Cài đặt',
           subtitle: 'Thông báo, bảo mật, ngôn ngữ',
+          onTap: onComingSoon,
         ),
         const SizedBox(height: 10),
-        const _AccountListTile(
+        _AccountListTile(
           icon: Icons.support_agent_outlined,
           title: 'Hỗ trợ',
           subtitle: 'Liên hệ nhà trường',
+          onTap: onComingSoon,
         ),
         const SizedBox(height: 10),
         _AccountListTile(

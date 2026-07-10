@@ -1,3 +1,4 @@
+import 'package:myfschoolse1913/vn/edu/fpt/ui/core/widgets/student_top_app_bar.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/core/layout/page_frame.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -90,6 +91,7 @@ class _NotificationDetailPageState extends State<NotificationDetailPage> {
     return Scaffold(
       backgroundColor: pageBackdropColor(context),
       body: SafeArea(
+        top: false,
         child: Center(
           child: ConstrainedBox(
             constraints: BoxConstraints(maxWidth: pageContentMaxWidth(context)),
@@ -102,7 +104,10 @@ class _NotificationDetailPageState extends State<NotificationDetailPage> {
 
                   return Column(
                     children: [
-                      _NotificationDetailHeader(onBack: _goBack),
+                      StudentTopAppBar(
+                        title: 'Chi tiết thông báo',
+                        onBack: _goBack,
+                      ),
                       Expanded(
                         child: _NotificationDetailBody(
                           notification: state.notification,
@@ -127,39 +132,6 @@ class _NotificationDetailPageState extends State<NotificationDetailPage> {
   }
 }
 
-class _NotificationDetailHeader extends StatelessWidget {
-  const _NotificationDetailHeader({required this.onBack});
-
-  final VoidCallback onBack;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 96,
-      width: double.infinity,
-      color: FptColors.orangeDeep,
-      padding: const EdgeInsets.fromLTRB(8, 28, 24, 0),
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: onBack,
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            tooltip: 'Quay lại',
-          ),
-          const SizedBox(width: 4),
-          Text(
-            'Chi tiết thông báo',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w800,
-              height: 1.2,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _NotificationDetailBody extends StatelessWidget {
   const _NotificationDetailBody({

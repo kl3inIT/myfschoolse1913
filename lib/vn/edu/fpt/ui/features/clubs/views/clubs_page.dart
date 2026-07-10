@@ -84,6 +84,7 @@ class _ClubsPageState extends State<ClubsPage> {
     return Scaffold(
       backgroundColor: pageBackdropColor(context),
       body: SafeArea(
+        top: false,
         child: Center(
           child: ConstrainedBox(
             constraints: BoxConstraints(maxWidth: pageContentMaxWidth(context)),

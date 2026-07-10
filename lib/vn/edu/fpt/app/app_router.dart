@@ -5,6 +5,7 @@ import 'package:myfschoolse1913/vn/edu/fpt/app/app_session_controller.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/applications/views/applications_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/applications/views/create_application_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/account/views/account_page.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/ui/features/account/views/profile_detail_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/assistant/views/assistant_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/auth/views/forgot_password_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/auth/views/login_page.dart';
@@ -37,6 +38,7 @@ abstract final class AppRoutes {
   static const notifications = '/notifications';
   static const notificationDetail = '/notifications/:notificationId';
   static const account = '/account';
+  static const accountProfile = '/account/profile';
 
   static String notificationDetailPath(String notificationId) {
     return '/notifications/$notificationId';
@@ -75,7 +77,8 @@ GoRouter createAppRouter({required AppSessionController sessionController}) {
           path == AppRoutes.clubRegistration ||
           path == AppRoutes.notifications ||
           path.startsWith('${AppRoutes.notifications}/') ||
-          path == AppRoutes.account;
+          path == AppRoutes.account ||
+          path == AppRoutes.accountProfile;
 
       return switch (sessionController.status) {
         AppSessionStatus.checking when isProtectedRoute => AppRoutes.login,
@@ -273,6 +276,18 @@ GoRouter createAppRouter({required AppSessionController sessionController}) {
           return NoTransitionPage(
             child: AccountPage(
               userRepository: services.userRepository,
+              sessionController: services.sessionController,
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.accountProfile,
+        pageBuilder: (context, state) {
+          final services = AppDependencies.of(context);
+          return NoTransitionPage(
+            child: ProfileDetailPage(
+              dashboardRepository: services.dashboardRepository,
               sessionController: services.sessionController,
             ),
           );

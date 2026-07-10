@@ -1,3 +1,4 @@
+import 'package:myfschoolse1913/vn/edu/fpt/ui/core/widgets/student_top_app_bar.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/core/layout/page_frame.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -59,6 +60,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: pageBackdropColor(context),
       body: SafeArea(
+        top: false,
         child: Center(
           child: ConstrainedBox(
             constraints: BoxConstraints(maxWidth: pageContentMaxWidth(context)),
@@ -72,7 +74,20 @@ class _HomePageState extends State<HomePage> {
 
                   return Column(
                     children: [
-                      _DashboardHeader(dashboard: dashboard),
+                      StudentTopAppBar(
+                        title:
+                            'Xin chào, '
+                            '${dashboard?.student.role.label ?? 'Học sinh'}',
+                        trailing: IconButton(
+                          tooltip: 'Thông báo',
+                          onPressed: () =>
+                              context.go(AppRoutes.notifications),
+                          icon: const Icon(
+                            Icons.notifications,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
                       Expanded(
                         child: _DashboardBody(
                           dashboard: dashboard,
@@ -111,48 +126,6 @@ class _HomePageState extends State<HomePage> {
         context.go(AppRoutes.account);
         break;
     }
-  }
-}
-
-class _DashboardHeader extends StatelessWidget {
-  const _DashboardHeader({required this.dashboard});
-
-  final StudentDashboard? dashboard;
-
-  @override
-  Widget build(BuildContext context) {
-    final roleLabel = dashboard?.student.role.label ?? 'Học sinh';
-
-    return Container(
-      height: 96,
-      color: FptColors.orangeDeep,
-      padding: const EdgeInsets.only(left: 24, top: 28, right: 24),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Text(
-              'Xin chào, $roleLabel',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-                height: 1.2,
-              ),
-            ),
-          ),
-          IconButton(
-            tooltip: 'Thông báo',
-            onPressed: () {
-              context.go(AppRoutes.notifications);
-            },
-            visualDensity: VisualDensity.compact,
-            icon: const Icon(Icons.notifications, color: Colors.white),
-          ),
-        ],
-      ),
-    );
   }
 }
 

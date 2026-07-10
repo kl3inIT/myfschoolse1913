@@ -1,9 +1,9 @@
+import 'package:myfschoolse1913/vn/edu/fpt/ui/core/widgets/student_top_app_bar.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/core/layout/page_frame.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_ai_toolkit/flutter_ai_toolkit.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/app/app_router.dart';
-import 'package:myfschoolse1913/vn/edu/fpt/core/theme/app_colors.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/services/assistant_api_service.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/assistant/view_models/school_assistant_provider.dart';
 
@@ -38,6 +38,7 @@ class _AssistantPageState extends State<AssistantPage> {
     return Scaffold(
       backgroundColor: pageBackdropColor(context),
       body: SafeArea(
+        top: false,
         child: Center(
           child: ConstrainedBox(
             constraints: BoxConstraints(maxWidth: pageContentMaxWidth(context)),
@@ -45,7 +46,14 @@ class _AssistantPageState extends State<AssistantPage> {
               color: Colors.white,
               child: Column(
                 children: [
-                  const _AssistantHeader(),
+                  StudentTopAppBar(
+                    title: 'Trợ lý AI',
+                    onBack: () => context.go(AppRoutes.home),
+                    trailing: const Padding(
+                      padding: EdgeInsets.only(right: 12),
+                      child: Icon(Icons.smart_toy_outlined, color: Colors.white),
+                    ),
+                  ),
                   Expanded(
                     child: LlmChatView(
                       provider: _provider,
@@ -80,37 +88,3 @@ class _AssistantPageState extends State<AssistantPage> {
   }
 }
 
-class _AssistantHeader extends StatelessWidget {
-  const _AssistantHeader();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 96,
-      color: FptColors.orangeDeep,
-      padding: const EdgeInsets.only(left: 8, top: 20, right: 24),
-      child: Row(
-        children: [
-          IconButton(
-            tooltip: 'Về trang chủ',
-            onPressed: () => context.go(AppRoutes.home),
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-          ),
-          Expanded(
-            child: Text(
-              'Trợ lý AI',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-                height: 1.2,
-              ),
-            ),
-          ),
-          const Icon(Icons.smart_toy_outlined, color: Colors.white),
-        ],
-      ),
-    );
-  }
-}

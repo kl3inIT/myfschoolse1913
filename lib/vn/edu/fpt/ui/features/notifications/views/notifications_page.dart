@@ -7,6 +7,7 @@ import 'package:myfschoolse1913/vn/edu/fpt/core/theme/app_colors.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/notifications_repository.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/domain/models/student_notifications.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/core/widgets/student_bottom_navigation.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/ui/core/widgets/student_top_app_bar.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/notifications/view_models/notifications_view_model.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/notifications/widgets/notification_chips.dart';
 
@@ -85,6 +86,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     return Scaffold(
       backgroundColor: pageBackdropColor(context),
       body: SafeArea(
+        top: false,
         child: Center(
           child: ConstrainedBox(
             constraints: BoxConstraints(maxWidth: pageContentMaxWidth(context)),
@@ -97,7 +99,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
                   return Column(
                     children: [
-                      const _NotificationsHeader(),
+                      StudentTopAppBar(
+                        title: 'Thông báo',
+                        onBack: () => context.go(AppRoutes.home),
+                      ),
                       Expanded(
                         child: _NotificationsBody(
                           notifications: state.notifications,
@@ -117,29 +122,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _NotificationsHeader extends StatelessWidget {
-  const _NotificationsHeader();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 96,
-      width: double.infinity,
-      color: FptColors.orangeDeep,
-      alignment: Alignment.centerLeft,
-      padding: const EdgeInsets.fromLTRB(24, 28, 24, 0),
-      child: Text(
-        'Thông báo',
-        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-          color: Colors.white,
-          fontWeight: FontWeight.w800,
-          height: 1.2,
         ),
       ),
     );
