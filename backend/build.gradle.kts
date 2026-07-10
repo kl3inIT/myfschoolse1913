@@ -34,6 +34,8 @@ dependencies {
 	implementation("org.springframework.modulith:spring-modulith-starter-core")
 	implementation("org.springframework.ai:spring-ai-starter-model-openai")
 	implementation("org.springframework.ai:spring-ai-starter-model-chat-memory-repository-jdbc")
+	implementation("org.springframework.ai:spring-ai-starter-vector-store-pgvector")
+	implementation("org.springframework.ai:spring-ai-tika-document-reader")
 	runtimeOnly("org.postgresql:postgresql")
 	testImplementation("org.springframework.boot:spring-boot-starter-actuator-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")

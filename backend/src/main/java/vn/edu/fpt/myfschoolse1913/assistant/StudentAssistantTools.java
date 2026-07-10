@@ -8,9 +8,11 @@ import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.stereotype.Component;
+import java.util.List;
 import vn.edu.fpt.myfschoolse1913.application.StudentApplicationStatus;
 import vn.edu.fpt.myfschoolse1913.application.StudentApplicationService;
 import vn.edu.fpt.myfschoolse1913.application.StudentApplicationsResponse;
+import vn.edu.fpt.myfschoolse1913.document.SchoolDocumentSearchService;
 import vn.edu.fpt.myfschoolse1913.notification.StudentNotificationService;
 import vn.edu.fpt.myfschoolse1913.notification.StudentNotificationsResponse;
 import vn.edu.fpt.myfschoolse1913.student.StudentScheduleResponse;
@@ -29,22 +31,26 @@ import vn.edu.fpt.myfschoolse1913.student.StudentSemesterGradesService;
 class StudentAssistantTools {
 
 	static final String USER_ID = "userId";
+	static final String SETTINGS = "assistantSettings";
 
 	private final StudentScheduleService scheduleService;
 	private final StudentSemesterGradesService gradesService;
 	private final StudentNotificationService notificationService;
 	private final StudentApplicationService applicationService;
+	private final SchoolDocumentSearchService documentSearchService;
 
 	StudentAssistantTools(
 			StudentScheduleService scheduleService,
 			StudentSemesterGradesService gradesService,
 			StudentNotificationService notificationService,
-			StudentApplicationService applicationService
+			StudentApplicationService applicationService,
+			SchoolDocumentSearchService documentSearchService
 	) {
 		this.scheduleService = scheduleService;
 		this.gradesService = gradesService;
 		this.notificationService = notificationService;
 		this.applicationService = applicationService;
+		this.documentSearchService = documentSearchService;
 	}
 
 	@Tool(description = "Lấy thời khóa biểu cả tuần của học sinh: từng ngày gồm các tiết học, "
@@ -77,6 +83,22 @@ class StudentAssistantTools {
 			ToolContext toolContext
 	) {
 		return applicationService.getApplications(userId(toolContext), parseStatus(status));
+	}
+
+	@Tool(description = "Tìm kiếm trong kho tài liệu của trường: nội quy, quy chế, thông tin trường, "
+			+ "tài liệu học tập các môn. Dùng cho mọi câu hỏi về quy định của trường hoặc kiến thức "
+			+ "môn học. Trả về các đoạn trích kèm tên tài liệu nguồn.")
+	List<SchoolDocumentSearchService.DocumentSnippet> searchSchoolDocuments(
+			@ToolParam(description = "Câu truy vấn tìm kiếm, ví dụ: 'quy chế thi lại' hoặc "
+					+ "'hàm số bậc hai'") String query,
+			ToolContext toolContext
+	) {
+		var settings = toolContext.getContext().get(SETTINGS)
+				instanceof AssistantSettingsService.Snapshot snapshot ? snapshot : null;
+		return documentSearchService.search(
+				query,
+				settings == null ? AssistantSettingsService.DEFAULT_TOP_K : settings.topK(),
+				settings == null ? null : settings.similarityThreshold());
 	}
 
 	private UUID userId(ToolContext toolContext) {

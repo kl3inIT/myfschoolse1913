@@ -2,6 +2,11 @@ spring:
   application:
     name: myfschoolse1913-backend
 
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 26MB
+
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/myfschoolse1913}
     username: ${DB_USERNAME:northstar}
@@ -28,6 +33,18 @@ spring:
       max-retries: 2
       chat:
         model: ${ASSISTANT_CHAT_MODEL:gpt-5.5}
+      # Embedding config KEEPS the `.options` nesting (unlike chat above).
+      # 3-large shortened to 1536 dims (Matryoshka): best multilingual quality
+      # for Vietnamese documents at a pgvector-indexable width.
+      embedding:
+        options:
+          model: text-embedding-3-large
+          dimensions: 1536
+    vectorstore:
+      pgvector:
+        # Flyway owns the schema (V15) — HNSW + cosine are the defaults.
+        initialize-schema: false
+        dimensions: 1536
     chat:
       memory:
         repository:
