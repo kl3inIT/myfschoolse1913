@@ -16,6 +16,10 @@ Admin web MVP completed 2026-07-10 — history in
 
 ## Recently Built
 
+- Repeatable Vietnamese teacher-demo fixture (2026-07-11): 36 synthetic
+  students/three classes, curriculum-shaped subjects and grades, seven-day
+  timetable, varied school-life data, six seeded RAG documents, and a verified
+  student-create -> admin-approve -> student-read walkthrough.
 - Student AI assistant (2026-07-10): Spring AI 2.0 `assistant` backend module
   (OpenAI chat, JDBC conversation memory, read-only data tools) streaming SSE
   to a `flutter_ai_toolkit` chat screen at `/assistant`
@@ -43,10 +47,9 @@ Admin web MVP completed 2026-07-10 — history in
 
 ## Backlog
 
-- Make local backend/database quickstart repeatable.
 - Add backend integration tests for the student-facing and admin API
   surfaces (see `docs/tests/domains/admin-web.md` for the admin gap list).
-- Add end-to-end browser checks for the demo flow.
-- Add docs/screenshots for the teacher review demo path.
+- Turn the verified manual teacher-review walkthrough into an automated
+  Playwright check.
 - Assistant hardening: rate limiting/spend cap, integration tests with an LLM
   stub, provider/SSE-parsing unit tests (see `docs/tests/domains/assistant.md`).

@@ -18,21 +18,45 @@ public class DemoUserSeeder {
 	@Order(0)
 	ApplicationRunner seedDemoStudent(AppUserRepository userRepository, PasswordEncoder passwordEncoder) {
 		return (args) -> {
-			userRepository.findByPhoneNumber("0900000000")
-					.orElseGet(() -> userRepository.save(new AppUser(
-							"0900000000",
-							passwordEncoder.encode("Password123"),
-							"Quản trị viên",
-							UserRole.ADMIN
-					)));
-
-			userRepository.findByPhoneNumber("0900000001")
-					.orElseGet(() -> userRepository.save(new AppUser(
-							"0900000001",
-							passwordEncoder.encode("Password123"),
-							"Nguyễn Minh Anh",
-							UserRole.STUDENT
-					)));
+			String passwordHash = passwordEncoder.encode(DemoStudentFixtures.DEFAULT_PASSWORD);
+			seedUser(
+					userRepository,
+					DemoStudentFixtures.ADMIN_PHONE,
+					passwordHash,
+					"Quản trị viên",
+					UserRole.ADMIN,
+					true
+			);
+			for (var fixture : DemoStudentFixtures.STUDENTS) {
+				seedUser(
+						userRepository,
+						fixture.phoneNumber(),
+						passwordHash,
+						fixture.fullName(),
+						UserRole.STUDENT,
+						fixture.enabled()
+				);
+			}
 		};
+	}
+
+	private AppUser seedUser(
+			AppUserRepository userRepository,
+			String phoneNumber,
+			String passwordHash,
+			String fullName,
+			UserRole role,
+			boolean enabled
+	) {
+		var user = userRepository.findByPhoneNumber(phoneNumber)
+				.orElseGet(() -> userRepository.save(new AppUser(
+						phoneNumber,
+						passwordHash,
+						fullName,
+						role
+				)));
+		user.updateFullName(fullName);
+		user.updateEnabled(enabled);
+		return userRepository.save(user);
 	}
 }

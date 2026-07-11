@@ -34,6 +34,17 @@ Postgres, as demo student `0900000001`:
   binds as bytea on PostgreSQL); fixed by the repo-standard ''-sentinel
   search parameter and re-verified.
 
+## Fresh-Fixture Verification (2026-07-11)
+
+- Six classpath Markdown documents were ingested during demo startup; every
+  `school_documents` row was `INDEXED` and had a matching pgvector row.
+- Flutter Web question `Điểm trung bình môn Toán của mình là bao nhiêu?`
+  streamed `8.5` plus TX/GK/CK detail from the student's own grade tool.
+- Flutter Web question about self-directed phone use returned the seeded rule
+  and cited `Nội quy học sinh - Bản demo 2026-2027`.
+- Both assistant requests completed with HTTP 200 against the real OpenAI
+  model and the freshly recreated PostgreSQL database.
+
 ## Gaps
 
 - No backend integration test for the chat endpoint (would need an LLM stub;

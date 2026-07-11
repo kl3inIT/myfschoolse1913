@@ -31,6 +31,11 @@ with browser flows before its docs/commit:
   status filter, stats) — cross-checked against the student applications
   API.
 - Dashboard stats and panels after the `/` → `/students` route move.
+- Fresh-database teacher walkthrough (2026-07-11): dashboard rendered 36
+  students, three classes, six pending applications, and two locked accounts;
+  the AI page rendered six INDEXED documents; an application created from
+  Flutter Web appeared first in the pending table and was approved through the
+  review dialog.
 
 ## Gaps
 

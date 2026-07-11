@@ -62,6 +62,38 @@ The defaults match the local `myfschoolse1913` database inside the
 `northstar-postgres-1` Docker container; point `DB_*` at any other
 PostgreSQL instance as needed.
 
+### Demo fixture
+
+`SEED_DEMO_USER=true` creates the complete teacher-review fixture:
+
+- admin `0900000000 / Password123`;
+- demo student `0900000001 / Password123`;
+- 36 synthetic students across `10A1`, `10A2`, and `11A1`;
+- grades, a seven-day timetable, events, notifications, applications, and
+  clubs;
+- six Markdown knowledge documents embedded into pgvector.
+
+Run the seed only against a disposable demo database and with a valid
+`OPENAI_API_KEY` (document embeddings are created during startup):
+
+```powershell
+cd backend
+$env:SEED_DEMO_USER='true'
+.\gradlew.bat bootRun
+```
+
+After the first successful seed, stop the backend and clear the flag before
+normal demo use so application reviews and other mutations survive restarts:
+
+```powershell
+Remove-Item Env:SEED_DEMO_USER -ErrorAction SilentlyContinue
+.\gradlew.bat bootRun
+```
+
+To rebuild only this project's local database from zero (destructive), follow
+[the teacher demo runbook](./docs/guidelines/teacher-demo-runbook.md). Never
+drop the `northstar` database or the shared PostgreSQL container.
+
 Admin web (requires the backend on port 8080; demo admin
 `0900000000` / `Password123` when demo data is seeded):
 

@@ -1,5 +1,6 @@
 package vn.edu.fpt.myfschoolse1913.document;
 
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -8,6 +9,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface SchoolDocumentRepository extends JpaRepository<SchoolDocument, UUID> {
+
+	Optional<SchoolDocument> findByTitle(String title);
 
 	// :search rides as '' (never null) and pre-lowercased — a null String
 	// parameter binds as bytea on PostgreSQL and breaks lower().

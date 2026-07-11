@@ -1,24 +1,27 @@
 package vn.edu.fpt.myfschoolse1913.bootstrap;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import vn.edu.fpt.myfschoolse1913.club.ClubRegistration;
-import vn.edu.fpt.myfschoolse1913.club.ClubRegistrationRepository;
-import vn.edu.fpt.myfschoolse1913.club.SchoolClub;
-import vn.edu.fpt.myfschoolse1913.club.SchoolClubRepository;
 import vn.edu.fpt.myfschoolse1913.application.StudentApplication;
 import vn.edu.fpt.myfschoolse1913.application.StudentApplicationRepository;
 import vn.edu.fpt.myfschoolse1913.application.StudentApplicationStatus;
 import vn.edu.fpt.myfschoolse1913.application.StudentApplicationType;
+import vn.edu.fpt.myfschoolse1913.club.ClubRegistration;
+import vn.edu.fpt.myfschoolse1913.club.ClubRegistrationRepository;
+import vn.edu.fpt.myfschoolse1913.club.SchoolClub;
+import vn.edu.fpt.myfschoolse1913.club.SchoolClubRepository;
 import vn.edu.fpt.myfschoolse1913.event.SchoolEvent;
 import vn.edu.fpt.myfschoolse1913.event.SchoolEventRepository;
 import vn.edu.fpt.myfschoolse1913.notification.SchoolNotification;
@@ -46,6 +49,28 @@ import vn.edu.fpt.myfschoolse1913.user.AppUserRepository;
 @ConditionalOnProperty(prefix = "app.bootstrap.demo-user", name = "enabled", havingValue = "true")
 public class DemoSchoolDataSeeder {
 
+	private static final List<String> GRADED_SUBJECT_CODES = List.of(
+			"MATH",
+			"LITERATURE",
+			"ENGLISH",
+			"HISTORY",
+			"PHYSICS",
+			"CHEMISTRY",
+			"INFORMATICS",
+			"CIVIC_EDUCATION"
+	);
+
+	private static final Map<String, Double> DEMO_STUDENT_AVERAGES = Map.of(
+			"MATH", 8.5,
+			"LITERATURE", 8.1,
+			"ENGLISH", 8.7,
+			"HISTORY", 8.2,
+			"PHYSICS", 8.3,
+			"CHEMISTRY", 7.9,
+			"INFORMATICS", 8.6,
+			"CIVIC_EDUCATION", 8.0
+	);
+
 	@Bean
 	@Order(1)
 	ApplicationRunner seedDemoSchoolData(
@@ -61,33 +86,26 @@ public class DemoSchoolDataSeeder {
 			SchoolNotificationRepository notificationRepository,
 			StudentApplicationRepository applicationRepository,
 			SchoolClubRepository clubRepository,
-			ClubRegistrationRepository clubRegistrationRepository
+			ClubRegistrationRepository clubRegistrationRepository,
+			Clock clock
 	) {
 		return (args) -> {
-			var user = userRepository.findByPhoneNumber("0900000001")
-					.orElseThrow(() -> new IllegalStateException("Demo user was not seeded"));
-
-			var academicYear = academicYearRepository.findByName("Năm học 2026")
+			LocalDate today = LocalDate.now(clock);
+			var academicYear = academicYearRepository.findByName("2026-2027")
 					.orElseGet(() -> academicYearRepository.save(new AcademicYear(
-							"Năm học 2026",
-							LocalDate.of(2026, 8, 1),
+							"2026-2027",
+							LocalDate.of(2026, 7, 1),
 							LocalDate.of(2027, 5, 31),
 							true
 					)));
 
-			var schoolClass = schoolClassRepository.findByAcademicYearAndName(academicYear, "Lớp 10A1")
-					.orElseGet(() -> schoolClassRepository.save(new SchoolClass(academicYear, "Lớp 10A1")));
-
-			var student = studentRepository.findByUserId(user.getId())
-					.orElseGet(() -> studentRepository.save(new Student(
-							user,
-							schoolClass,
-							"FS1913-0001",
-							"Đang học"
-					)));
-			if (!student.getSchoolClass().getId().equals(schoolClass.getId())) {
-				student.updateSchoolClass(schoolClass);
-				studentRepository.save(student);
+			Map<String, SchoolClass> classes = new LinkedHashMap<>();
+			for (String className : List.of("10A1", "10A2", "11A1")) {
+				classes.put(
+						className,
+						schoolClassRepository.findByAcademicYearAndName(academicYear, className)
+								.orElseGet(() -> schoolClassRepository.save(new SchoolClass(academicYear, className)))
+				);
 			}
 
 			var semester = semesterRepository.findByAcademicYearAndName(academicYear, "Học kỳ 1")
@@ -95,354 +113,248 @@ public class DemoSchoolDataSeeder {
 							academicYear,
 							"Học kỳ 1",
 							1,
-							LocalDate.of(2026, 8, 1),
+							LocalDate.of(2026, 7, 1),
 							LocalDate.of(2026, 12, 31),
 							true
 					)));
 
-			gradeRepository.deleteByStudentAndSemester(student, semester);
-			timetableSlotRepository.deleteBySchoolClassAndSemester(schoolClass, semester);
-
-			var math = subject(subjectRepository, "MATH", "Toán học", 10);
-			var literature = subject(subjectRepository, "LITERATURE", "Ngữ văn", 20);
-			var english = subject(subjectRepository, "ENGLISH", "Tiếng Anh", 30);
-			var physics = subject(subjectRepository, "PHYSICS", "Vật lý", 40);
-			var chemistry = subject(subjectRepository, "CHEMISTRY", "Hóa học", 50);
-			var informatics = subject(subjectRepository, "INFORMATICS", "Tin học", 60);
-			var civicEducation = subject(subjectRepository, "CIVIC_EDUCATION", "GDKT&PL", 70);
-			var physicalEducation = subject(subjectRepository, "PHYSICAL_EDUCATION", "Giáo dục thể chất", 80);
-			var defenseEducation = subject(subjectRepository, "DEFENSE_EDUCATION", "GDQP-AN", 90);
-			var pdp = subject(subjectRepository, "PDP", "PDP", 100);
-			var careerExperience = subject(subjectRepository, "CAREER_EXPERIENCE", "HĐTNHN", 110);
-			var coding = subject(subjectRepository, "CODING", "Coding / Robotics", 120);
-
-			seedGrade(gradeRepository, student, semester, math, "8.0", "8.5", "8.7", "8.5", "Giữ tốt tốc độ làm bài tự luận.");
-			seedGrade(gradeRepository, student, semester, literature, "8.0", "8.0", "8.3", "8.1", "Cần bổ sung dẫn chứng khi viết nghị luận.");
-			seedGrade(gradeRepository, student, semester, english, "9.0", "8.5", "8.7", "8.7", "Kỹ năng nói và nghe ổn định.");
-			seedGrade(gradeRepository, student, semester, physics, "8.0", "8.2", "8.5", "8.3", "Nên luyện thêm bài tập vận dụng.");
-			seedGrade(gradeRepository, student, semester, informatics, "8.5", "8.7", "8.6", "8.6", "Hoàn thành tốt bài thực hành lập trình.");
-
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 1, 1, math, "Phòng 10A1", "Cô Lan", "07:45", "08:30");
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 1, 2, literature, "Phòng 10A1", "Cô Mai", "08:40", "09:25");
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 1, 3, english, "Phòng 10A1", "Cô Hương", "09:40", "10:25");
-			seedActivitySlot(timetableSlotRepository, schoolClass, semester, 1, 4, pdp, "Phòng PDP", "Thầy Nam", "10:35", "11:20");
-			seedMealSlot(timetableSlotRepository, schoolClass, semester, 1, 5, "Ăn trưa / nghỉ trưa", "Nhà ăn", "11:20", "13:30");
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 1, 6, physics, "Phòng Lab 1", "Thầy Quân", "13:30", "14:15");
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 1, 7, informatics, "Phòng Lab CNTT", "Cô Trang", "14:25", "15:10");
-			seedActivitySlot(timetableSlotRepository, schoolClass, semester, 1, 8, careerExperience, "Phòng 10A1", "Cô Mai", "15:20", "16:00");
-
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 2, 1, chemistry, "Phòng Lab 2", "Cô Thảo", "07:45", "08:30");
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 2, 2, english, "Phòng 10A1", "Cô Hương", "08:40", "09:25");
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 2, 3, math, "Phòng 10A1", "Cô Lan", "09:40", "10:25");
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 2, 4, civicEducation, "Phòng 10A1", "Thầy Bình", "10:35", "11:20");
-			seedMealSlot(timetableSlotRepository, schoolClass, semester, 2, 5, "Ăn trưa / nghỉ trưa", "Nhà ăn", "11:20", "13:30");
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 2, 6, coding, "Phòng STEM", "Thầy Long", "13:30", "14:15");
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 2, 7, physicalEducation, "Nhà đa năng", "Thầy Nam", "14:25", "15:10");
-			seedActivitySlot(timetableSlotRepository, schoolClass, semester, 2, 8, careerExperience, "Phòng dự án", "Cô Trang", "15:20", "16:00");
-
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 3, 1, literature, "Phòng 10A1", "Cô Mai", "07:45", "08:30");
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 3, 2, math, "Phòng 10A1", "Cô Lan", "08:40", "09:25");
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 3, 3, physics, "Phòng Lab 1", "Thầy Quân", "09:40", "10:25");
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 3, 4, english, "Phòng 10A1", "Cô Hương", "10:35", "11:20");
-			seedMealSlot(timetableSlotRepository, schoolClass, semester, 3, 5, "Ăn trưa / nghỉ trưa", "Nhà ăn", "11:20", "13:30");
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 3, 6, informatics, "Phòng Lab CNTT", "Cô Trang", "13:30", "14:15");
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 3, 7, defenseEducation, "Sân trường", "Thầy Kiên", "14:25", "15:10");
-			seedActivitySlot(timetableSlotRepository, schoolClass, semester, 3, 8, pdp, "Phòng PDP", "Thầy Nam", "15:20", "16:00");
-
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 4, 1, math, "Phòng 10A1", "Cô Lan", "07:45", "08:30");
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 4, 2, chemistry, "Phòng Lab 2", "Cô Thảo", "08:40", "09:25");
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 4, 3, literature, "Phòng 10A1", "Cô Mai", "09:40", "10:25");
-			seedActivitySlot(timetableSlotRepository, schoolClass, semester, 4, 4, careerExperience, "Phòng 10A1", "Cô Mai", "10:35", "11:20");
-			seedMealSlot(timetableSlotRepository, schoolClass, semester, 4, 5, "Ăn trưa / nghỉ trưa", "Nhà ăn", "11:20", "13:30");
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 4, 6, english, "Phòng 10A1", "Cô Hương", "13:30", "14:15");
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 4, 7, coding, "Phòng STEM", "Thầy Long", "14:25", "15:10");
-			seedActivitySlot(timetableSlotRepository, schoolClass, semester, 4, 8, pdp, "Phòng PDP", "Thầy Nam", "15:20", "16:00");
-
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 5, 1, english, "Phòng 10A1", "Cô Hương", "07:45", "08:30");
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 5, 2, math, "Phòng 10A1", "Cô Lan", "08:40", "09:25");
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 5, 3, informatics, "Phòng Lab CNTT", "Cô Trang", "09:40", "10:25");
-			seedActivitySlot(timetableSlotRepository, schoolClass, semester, 5, 4, pdp, "Phòng PDP", "Thầy Nam", "10:35", "11:20");
-			seedMealSlot(timetableSlotRepository, schoolClass, semester, 5, 5, "Ăn trưa / nghỉ trưa", "Nhà ăn", "11:20", "13:30");
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 5, 6, chemistry, "Phòng Lab 2", "Cô Thảo", "13:30", "14:15");
-			seedSubjectSlot(timetableSlotRepository, schoolClass, semester, 5, 7, physicalEducation, "Nhà đa năng", "Thầy Nam", "14:25", "15:10");
-			seedActivitySlot(timetableSlotRepository, schoolClass, semester, 5, 8, careerExperience, "Hội trường", "Cô Trang", "15:20", "16:00");
-
-			seedEvent(
-					eventRepository,
-					academicYear,
-					null,
-					"Hội thao học sinh",
-					"Hoạt động thể thao toàn trường với các nội dung chạy tiếp sức, kéo co và bóng rổ.",
-					"Sân trường FPT Schools",
-					atSchoolTime(2026, 7, 6, 8, 0),
-					atSchoolTime(2026, 7, 6, 10, 30)
-			);
-			seedEvent(
-					eventRepository,
-					academicYear,
-					schoolClass,
-					"Sinh hoạt lớp cuối tuần",
-					"Lớp tổng kết tuần học, nhận xét nề nếp và chuẩn bị kế hoạch tuần tiếp theo.",
-					"Phòng A203",
-					atSchoolTime(2026, 7, 10, 15, 0),
-					atSchoolTime(2026, 7, 10, 15, 45)
-			);
-			seedEvent(
-					eventRepository,
-					academicYear,
-					null,
-					"Ngày hội câu lạc bộ",
-					"Học sinh trải nghiệm các câu lạc bộ thể thao, nghệ thuật và STEM.",
-					"Nhà đa năng",
-					atSchoolTime(2026, 7, 12, 8, 30),
-					atSchoolTime(2026, 7, 12, 11, 0)
-			);
-			seedEvent(
-					eventRepository,
-					academicYear,
-					null,
-					"Lễ tổng kết học kỳ",
-					"Tổng kết hoạt động học kỳ và phổ biến kế hoạch học tập học kỳ mới.",
-					"Hội trường",
-					atSchoolTime(2026, 7, 25, 8, 0),
-					atSchoolTime(2026, 7, 25, 9, 30)
+			Map<String, Subject> subjects = seedSubjects(subjectRepository);
+			Map<Integer, Student> students = seedStudents(
+					userRepository,
+					studentRepository,
+					classes
 			);
 
-			seedNotification(
-					notificationRepository,
-					"Lịch sinh hoạt đầu tuần",
-					"Học sinh khối 10 tập trung tại hội trường lúc 7:45 thứ hai để nghe phổ biến kế hoạch học tập.",
-					SchoolNotificationCategory.ACADEMIC,
-					atSchoolTime(2026, 7, 6, 7, 0),
-					true
-			);
-			seedNotification(
-					notificationRepository,
-					"Đăng ký câu lạc bộ tháng 7",
-					"Cổng đăng ký CLB mở từ ngày 01 đến 05 hằng tháng. Học sinh theo dõi lịch sinh hoạt trước khi đăng ký.",
-					SchoolNotificationCategory.EVENT,
-					atSchoolTime(2026, 7, 1, 8, 0),
-					false
-			);
-			seedNotification(
-					notificationRepository,
-					"Cập nhật dịch vụ bán trú",
-					"Nhà trường cập nhật thực đơn và thời gian nghỉ trưa trên hệ thống MyFPTSchools.",
-					SchoolNotificationCategory.SERVICE,
-					atSchoolTime(2026, 6, 30, 16, 0),
-					false
-			);
+			for (var fixture : DemoStudentFixtures.STUDENTS) {
+				Student student = students.get(fixture.number());
+				gradeRepository.deleteByStudentAndSemester(student, semester);
+				seedGrades(gradeRepository, student, semester, subjects, fixture.number());
+				applicationRepository.deleteByStudent(student);
+			}
 
-			applicationRepository.deleteByStudent(student);
-			seedApplication(
-					applicationRepository,
-					student,
-					StudentApplicationType.ABSENCE,
-					StudentApplicationStatus.PENDING,
-					LocalDate.of(2026, 7, 1),
-					null,
-					"Em bị ốm cần nghỉ học một ngày",
-					"Gia đình sẽ bổ sung giấy xác nhận nếu nhà trường yêu cầu."
-			);
-			seedApplication(
-					applicationRepository,
-					student,
-					StudentApplicationType.EARLY_LEAVE,
-					StudentApplicationStatus.APPROVED,
-					LocalDate.of(2026, 7, 3),
-					LocalTime.of(15, 30),
-					"Em có lịch khám sức khỏe",
-					"Xin phép được ra về lúc 15:30 sau tiết học buổi chiều."
-			);
-			seedApplication(
-					applicationRepository,
-					student,
-					StudentApplicationType.LATE_ARRIVAL,
-					StudentApplicationStatus.PENDING,
-					LocalDate.of(2026, 7, 6),
-					LocalTime.of(8, 30),
-					"Em có lịch hẹn y tế buổi sáng",
-					"Xin phép vào lớp từ tiết 2."
-			);
-			seedApplication(
-					applicationRepository,
-					student,
-					StudentApplicationType.DOCUMENT_REQUEST,
-					StudentApplicationStatus.APPROVED,
-					LocalDate.of(2026, 7, 4),
-					null,
-					"Em cần giấy xác nhận học sinh",
-					"Dùng để bổ sung hồ sơ tham gia kỳ thi học thuật."
-			);
+			for (SchoolClass schoolClass : classes.values()) {
+				timetableSlotRepository.deleteBySchoolClassAndSemester(schoolClass, semester);
+				seedTimetable(timetableSlotRepository, schoolClass, semester, subjects);
+			}
 
-			var footballClub = seedClub(
-					clubRepository,
-					"CLB Bóng đá",
-					"Rèn luyện thể lực, chiến thuật thi đấu và tinh thần đội nhóm cho học sinh THPT.",
-					"Thứ ba, thứ năm · 16:10-17:30",
-					"Sân bóng"
-			);
-			seedClub(
-					clubRepository,
-					"CLB Tranh biện tiếng Anh",
-					"Luyện phản biện, thuyết trình và tư duy lập luận bằng tiếng Anh.",
-					"Thứ tư · 16:10-17:20",
-					"Phòng 10A1"
-			);
-			seedClub(
-					clubRepository,
-					"CLB Mỹ thuật",
-					"Thiết kế poster, minh họa và chuẩn bị sản phẩm sáng tạo cho sự kiện trường.",
-					"Thứ tư · 16:10-17:20",
-					"Phòng mỹ thuật"
-			);
-			seedClub(
-					clubRepository,
-					"CLB Robotics",
-					"Lắp ráp robot, lập trình cảm biến và chuẩn bị cho các sân chơi STEM.",
-					"Thứ sáu · 16:10-17:30",
-					"Phòng STEM"
-			);
-			seedClub(
-					clubRepository,
-					"CLB Âm nhạc",
-					"Tập luyện vocal, nhạc cụ và biểu diễn trong sự kiện trường.",
-					"Thứ hai · 16:10-17:20",
-					"Phòng năng khiếu"
-			);
-			seedClub(
-					clubRepository,
-					"CLB Truyền thông",
-					"Sản xuất nội dung, chụp ảnh, quay dựng video và truyền thông sự kiện trường.",
-					"Thứ năm · 16:10-17:20",
-					"Phòng Studio"
-			);
-			seedClubRegistration(clubRegistrationRepository, student, footballClub);
+			eventRepository.deleteAllInBatch();
+			notificationRepository.deleteAllInBatch();
+			clubRegistrationRepository.deleteAllInBatch();
+			seedEvents(eventRepository, academicYear, classes.get("10A1"), today, clock);
+			seedNotifications(notificationRepository, today, clock);
+			seedApplications(applicationRepository, students, today, clock);
+			seedClubs(clubRepository, clubRegistrationRepository, students, clock);
 		};
 	}
 
-	private Subject subject(SubjectRepository subjectRepository, String code, String name, int displayOrder) {
-		return subjectRepository.findByCode(code)
+	private Map<Integer, Student> seedStudents(
+			AppUserRepository userRepository,
+			StudentRepository studentRepository,
+			Map<String, SchoolClass> classes
+	) {
+		Map<Integer, Student> students = new LinkedHashMap<>();
+		for (var fixture : DemoStudentFixtures.STUDENTS) {
+			var user = userRepository.findByPhoneNumber(fixture.phoneNumber())
+					.orElseThrow(() -> new IllegalStateException(
+							"Demo user was not seeded: " + fixture.phoneNumber()));
+			SchoolClass schoolClass = classes.get(fixture.className());
+			var student = studentRepository.findByUserId(user.getId())
+					.orElseGet(() -> studentRepository.save(new Student(
+							user,
+							schoolClass,
+							fixture.studentCode(),
+							fixture.status()
+					)));
+			student.updateEnrollment(schoolClass, fixture.studentCode(), fixture.status());
+			students.put(fixture.number(), studentRepository.save(student));
+		}
+		return students;
+	}
+
+	private Map<String, Subject> seedSubjects(SubjectRepository repository) {
+		Map<String, Subject> subjects = new LinkedHashMap<>();
+		List<SubjectFixture> fixtures = List.of(
+				new SubjectFixture("MATH", "Toán học", 10),
+				new SubjectFixture("LITERATURE", "Ngữ văn", 20),
+				new SubjectFixture("ENGLISH", "Tiếng Anh", 30),
+				new SubjectFixture("HISTORY", "Lịch sử", 40),
+				new SubjectFixture("GEOGRAPHY", "Địa lý", 50),
+				new SubjectFixture("PHYSICS", "Vật lý", 60),
+				new SubjectFixture("CHEMISTRY", "Hóa học", 70),
+				new SubjectFixture("BIOLOGY", "Sinh học", 80),
+				new SubjectFixture("TECHNOLOGY", "Công nghệ", 90),
+				new SubjectFixture("INFORMATICS", "Tin học", 100),
+				new SubjectFixture("CIVIC_EDUCATION", "Giáo dục kinh tế và pháp luật", 110),
+				new SubjectFixture("MUSIC", "Âm nhạc", 120),
+				new SubjectFixture("FINE_ARTS", "Mỹ thuật", 130),
+				new SubjectFixture("PHYSICAL_EDUCATION", "Giáo dục thể chất", 140),
+				new SubjectFixture("DEFENSE_EDUCATION", "Giáo dục quốc phòng và an ninh", 150),
+				new SubjectFixture("CAREER_EXPERIENCE", "Hoạt động trải nghiệm, hướng nghiệp", 160),
+				new SubjectFixture("PDP", "Phát triển cá nhân", 170),
+				new SubjectFixture("CODING", "Coding và Robotics", 180)
+		);
+		for (var fixture : fixtures) {
+			subjects.put(fixture.code(), subject(
+					repository,
+					fixture.code(),
+					fixture.name(),
+					fixture.displayOrder()
+			));
+		}
+		return subjects;
+	}
+
+	private Subject subject(SubjectRepository repository, String code, String name, int displayOrder) {
+		return repository.findByCode(code)
 				.map((subject) -> {
 					if (subject.getDisplayOrder() != displayOrder) {
 						subject.updateDisplayOrder(displayOrder);
-						return subjectRepository.save(subject);
+						return repository.save(subject);
 					}
 					return subject;
 				})
-				.orElseGet(() -> subjectRepository.save(new Subject(code, name, displayOrder)));
+				.orElseGet(() -> repository.save(new Subject(code, name, displayOrder)));
 	}
 
-	private void seedGrade(
-			SemesterSubjectGradeRepository gradeRepository,
+	private void seedGrades(
+			SemesterSubjectGradeRepository repository,
 			Student student,
 			Semester semester,
-			Subject subject,
-			String formativeScore,
-			String midtermScore,
-			String finalScore,
-			String averageScore,
-			String teacherComment
+			Map<String, Subject> subjects,
+			int studentNumber
 	) {
-		gradeRepository.findByStudentAndSemesterAndSubject(student, semester, subject)
-				.orElseGet(() -> gradeRepository.save(new SemesterSubjectGrade(
-						student,
-						semester,
-						subject,
-						new BigDecimal(formativeScore),
-						new BigDecimal(midtermScore),
-						new BigDecimal(finalScore),
-						new BigDecimal(averageScore),
-						"TX " + formativeScore + " - GK " + midtermScore + " - CK " + finalScore,
-						teacherComment
-				)));
+		for (int index = 0; index < GRADED_SUBJECT_CODES.size(); index++) {
+			String subjectCode = GRADED_SUBJECT_CODES.get(index);
+			double targetAverage = studentNumber == 1
+					? DEMO_STUDENT_AVERAGES.get(subjectCode)
+					: 5.2 + ((studentNumber * 7 + index * 3) % 43) / 10.0;
+			BigDecimal midterm = score(targetAverage - 0.1);
+			BigDecimal finalScore = score(targetAverage);
+			BigDecimal formative = score(targetAverage + 0.3);
+			BigDecimal average = weightedAverage(formative, midterm, finalScore);
+			repository.save(new SemesterSubjectGrade(
+					student,
+					semester,
+					subjects.get(subjectCode),
+					formative,
+					midterm,
+					finalScore,
+					average,
+					"TX %s · GK %s · CK %s".formatted(formative, midterm, finalScore),
+					commentFor(average)
+			));
+		}
 	}
 
-	private void seedSubjectSlot(
-			ClassTimetableSlotRepository timetableSlotRepository,
+	private BigDecimal score(double value) {
+		return BigDecimal.valueOf(Math.clamp(value, 0.0, 10.0)).setScale(1, RoundingMode.HALF_UP);
+	}
+
+	private BigDecimal weightedAverage(BigDecimal formative, BigDecimal midterm, BigDecimal finalScore) {
+		return formative
+				.add(midterm.multiply(BigDecimal.TWO))
+				.add(finalScore.multiply(BigDecimal.valueOf(3)))
+				.divide(BigDecimal.valueOf(6), 1, RoundingMode.HALF_UP);
+	}
+
+	private String commentFor(BigDecimal average) {
+		double value = average.doubleValue();
+		if (value >= 8.5) {
+			return "Nắm vững kiến thức và vận dụng tốt trong bài tập.";
+		}
+		if (value >= 7.0) {
+			return "Tiến bộ ổn định, cần duy trì nhịp ôn tập.";
+		}
+		if (value >= 5.5) {
+			return "Đạt yêu cầu, nên luyện thêm phần vận dụng.";
+		}
+		return "Cần trao đổi với giáo viên và lập kế hoạch phụ đạo.";
+	}
+
+	private void seedTimetable(
+			ClassTimetableSlotRepository repository,
+			SchoolClass schoolClass,
+			Semester semester,
+			Map<String, Subject> subjects
+	) {
+		String room = "Phòng " + schoolClass.getName();
+		seedStudyDay(repository, schoolClass, semester, 1, room, subjects,
+				List.of("MATH", "LITERATURE", "ENGLISH", "HISTORY", "INFORMATICS", "PHYSICAL_EDUCATION", "CAREER_EXPERIENCE"));
+		seedStudyDay(repository, schoolClass, semester, 2, room, subjects,
+				List.of("PHYSICS", "CHEMISTRY", "MATH", "CIVIC_EDUCATION", "CODING", "ENGLISH", "PDP"));
+		seedStudyDay(repository, schoolClass, semester, 3, room, subjects,
+				List.of("LITERATURE", "GEOGRAPHY", "BIOLOGY", "ENGLISH", "INFORMATICS", "DEFENSE_EDUCATION", "CAREER_EXPERIENCE"));
+		seedStudyDay(repository, schoolClass, semester, 4, room, subjects,
+				List.of("MATH", "TECHNOLOGY", "LITERATURE", "HISTORY", "ENGLISH", "PHYSICS", "PDP"));
+		seedStudyDay(repository, schoolClass, semester, 5, room, subjects,
+				List.of("CHEMISTRY", "MATH", "INFORMATICS", "CIVIC_EDUCATION", "BIOLOGY", "PHYSICAL_EDUCATION", "CAREER_EXPERIENCE"));
+
+		seedSlot(repository, schoolClass, semester, 6, 1, ClassTimetableSlotType.ACTIVITY,
+				"Sinh hoạt câu lạc bộ", null, "Nhà đa năng", "Ban chủ nhiệm CLB", "08:30", "10:00");
+		seedSlot(repository, schoolClass, semester, 6, 2, ClassTimetableSlotType.ACTIVITY,
+				"Dự án STEM cuối tuần", subjects.get("CODING"), "Phòng STEM", "Thầy Long", "10:15", "11:30");
+		seedSlot(repository, schoolClass, semester, 7, 1, ClassTimetableSlotType.ACTIVITY,
+				"Ngày hội trải nghiệm", null, "Sân trường", "Phòng Công tác học sinh", "08:30", "10:30");
+	}
+
+	private void seedStudyDay(
+			ClassTimetableSlotRepository repository,
 			SchoolClass schoolClass,
 			Semester semester,
 			int dayIndex,
-			int lessonNumber,
-			Subject subject,
-			String roomName,
-			String teacherName,
-			String startsAt,
-			String endsAt
+			String room,
+			Map<String, Subject> subjects,
+			List<String> subjectCodes
 	) {
-		seedSlot(
-				timetableSlotRepository,
-				schoolClass,
-				semester,
-				dayIndex,
-				lessonNumber,
-				ClassTimetableSlotType.SUBJECT,
-				subject.getName(),
-				subject,
-				roomName,
-				teacherName,
-				startsAt,
-				endsAt
-		);
+		String[] starts = {"07:45", "08:40", "09:40", "10:35", "11:20", "13:30", "14:25", "15:20"};
+		String[] ends = {"08:30", "09:25", "10:25", "11:20", "13:30", "14:15", "15:10", "16:00"};
+		for (int lesson = 1; lesson <= 8; lesson++) {
+			if (lesson == 5) {
+				seedSlot(repository, schoolClass, semester, dayIndex, lesson, ClassTimetableSlotType.MEAL,
+						"Ăn trưa và nghỉ trưa", null, "Nhà ăn", null, starts[lesson - 1], ends[lesson - 1]);
+				continue;
+			}
+			int subjectIndex = lesson < 5 ? lesson - 1 : lesson - 2;
+			Subject subject = subjects.get(subjectCodes.get(subjectIndex));
+			ClassTimetableSlotType type = subject.getCode().equals("CAREER_EXPERIENCE")
+					|| subject.getCode().equals("PDP")
+					? ClassTimetableSlotType.ACTIVITY
+					: ClassTimetableSlotType.SUBJECT;
+			seedSlot(repository, schoolClass, semester, dayIndex, lesson, type,
+					subject.getName(), subject, roomFor(subject, room), teacherFor(subject), starts[lesson - 1], ends[lesson - 1]);
+		}
 	}
 
-	private void seedActivitySlot(
-			ClassTimetableSlotRepository timetableSlotRepository,
-			SchoolClass schoolClass,
-			Semester semester,
-			int dayIndex,
-			int lessonNumber,
-			Subject subject,
-			String roomName,
-			String teacherName,
-			String startsAt,
-			String endsAt
-	) {
-		seedSlot(
-				timetableSlotRepository,
-				schoolClass,
-				semester,
-				dayIndex,
-				lessonNumber,
-				ClassTimetableSlotType.ACTIVITY,
-				subject.getName(),
-				subject,
-				roomName,
-				teacherName,
-				startsAt,
-				endsAt
-		);
+	private String roomFor(Subject subject, String defaultRoom) {
+		return switch (subject.getCode()) {
+			case "PHYSICS" -> "Phòng Lab Vật lý";
+			case "CHEMISTRY", "BIOLOGY" -> "Phòng Lab Khoa học";
+			case "INFORMATICS" -> "Phòng Lab CNTT";
+			case "CODING", "TECHNOLOGY" -> "Phòng STEM";
+			case "PHYSICAL_EDUCATION", "DEFENSE_EDUCATION" -> "Nhà đa năng";
+			case "PDP" -> "Phòng PDP";
+			default -> defaultRoom;
+		};
 	}
 
-	private void seedMealSlot(
-			ClassTimetableSlotRepository timetableSlotRepository,
-			SchoolClass schoolClass,
-			Semester semester,
-			int dayIndex,
-			int lessonNumber,
-			String title,
-			String roomName,
-			String startsAt,
-			String endsAt
-	) {
-		seedSlot(
-				timetableSlotRepository,
-				schoolClass,
-				semester,
-				dayIndex,
-				lessonNumber,
-				ClassTimetableSlotType.MEAL,
-				title,
-				null,
-				roomName,
-				null,
-				startsAt,
-				endsAt
-		);
+	private String teacherFor(Subject subject) {
+		return switch (subject.getCode()) {
+			case "MATH" -> "Cô Lan";
+			case "LITERATURE" -> "Cô Mai";
+			case "ENGLISH" -> "Cô Hương";
+			case "HISTORY", "GEOGRAPHY" -> "Thầy Minh";
+			case "PHYSICS" -> "Thầy Quân";
+			case "CHEMISTRY", "BIOLOGY" -> "Cô Thảo";
+			case "INFORMATICS", "CODING", "TECHNOLOGY" -> "Thầy Long";
+			case "CIVIC_EDUCATION" -> "Thầy Bình";
+			case "PHYSICAL_EDUCATION", "DEFENSE_EDUCATION" -> "Thầy Nam";
+			case "PDP", "CAREER_EXPERIENCE" -> "Cô Trang";
+			default -> "Giáo viên bộ môn";
+		};
 	}
 
 	private void seedSlot(
-			ClassTimetableSlotRepository timetableSlotRepository,
+			ClassTimetableSlotRepository repository,
 			SchoolClass schoolClass,
 			Semester semester,
 			int dayIndex,
@@ -455,114 +367,215 @@ public class DemoSchoolDataSeeder {
 			String startsAt,
 			String endsAt
 	) {
-		timetableSlotRepository
-				.findBySchoolClassAndSemesterAndDayIndexAndLessonNumber(
-						schoolClass,
-						semester,
-						(short) dayIndex,
-						lessonNumber
-				)
-				.orElseGet(() -> timetableSlotRepository.save(new ClassTimetableSlot(
-						schoolClass,
-						semester,
-						dayIndex,
-						lessonNumber,
-						slotType,
-						title,
-						subject,
-						roomName,
-						teacherName,
-						LocalTime.parse(startsAt),
-						LocalTime.parse(endsAt)
-				)));
+		repository.save(new ClassTimetableSlot(
+				schoolClass,
+				semester,
+				dayIndex,
+				lessonNumber,
+				slotType,
+				title,
+				subject,
+				roomName,
+				teacherName,
+				LocalTime.parse(startsAt),
+				LocalTime.parse(endsAt)
+		));
+	}
+
+	private void seedEvents(
+			SchoolEventRepository repository,
+			AcademicYear academicYear,
+			SchoolClass demoClass,
+			LocalDate today,
+			Clock clock
+	) {
+		seedEvent(repository, academicYear, null, "Hội thao học sinh",
+				"Thi đấu bóng rổ, kéo co và chạy tiếp sức giữa các lớp.", "Sân trường",
+				today.minusDays(2), 8, 0, 10, 30, clock);
+		seedEvent(repository, academicYear, null, "Ngày hội câu lạc bộ",
+				"Học sinh trải nghiệm các câu lạc bộ thể thao, nghệ thuật và STEM.", "Nhà đa năng",
+				today, 8, 30, 11, 0, clock);
+		seedEvent(repository, academicYear, demoClass, "Sinh hoạt lớp và tư vấn học tập",
+				"Lớp tổng kết tuần và trao đổi kế hoạch học tập cá nhân.", "Phòng 10A1",
+				today.plusDays(2), 15, 20, 16, 20, clock);
+		seedEvent(repository, academicYear, null, "Workshop an toàn số",
+				"Hướng dẫn bảo vệ tài khoản, dữ liệu cá nhân và ứng xử trên mạng.", "Hội trường",
+				today.plusDays(5), 14, 0, 16, 0, clock);
+		seedEvent(repository, academicYear, null, "Ngày hội STEM và Robotics",
+				"Trưng bày dự án khoa học, lập trình và robot của học sinh.", "Phòng STEM",
+				today.plusDays(10), 8, 0, 11, 30, clock);
 	}
 
 	private void seedEvent(
-			SchoolEventRepository eventRepository,
+			SchoolEventRepository repository,
 			AcademicYear academicYear,
 			SchoolClass schoolClass,
 			String title,
 			String description,
 			String location,
-			Instant startsAt,
-			Instant endsAt
+			LocalDate date,
+			int startHour,
+			int startMinute,
+			int endHour,
+			int endMinute,
+			Clock clock
 	) {
-		eventRepository.findByTitleAndStartsAt(title, startsAt)
-				.orElseGet(() -> eventRepository.save(new SchoolEvent(
-						academicYear,
-						schoolClass,
-						title,
-						description,
-						location,
-						startsAt,
-						endsAt,
-						true
-				)));
+		repository.save(new SchoolEvent(
+				academicYear,
+				schoolClass,
+				title,
+				description,
+				location,
+				atSchoolTime(date, startHour, startMinute, clock),
+				atSchoolTime(date, endHour, endMinute, clock),
+				true
+		));
+	}
+
+	private void seedNotifications(SchoolNotificationRepository repository, LocalDate today, Clock clock) {
+		seedNotification(repository, "Lịch hoạt động cuối tuần",
+				"Ngày hội câu lạc bộ bắt đầu lúc 08:30 tại nhà đa năng. Học sinh có mặt trước 15 phút.",
+				SchoolNotificationCategory.EVENT, today, true, clock);
+		seedNotification(repository, "Mở cổng đăng ký câu lạc bộ",
+				"Cổng đăng ký CLB mở trong 5 ngày. Mỗi học sinh chọn tối đa hai câu lạc bộ.",
+				SchoolNotificationCategory.EVENT, today.minusDays(1), false, clock);
+		seedNotification(repository, "Lịch kiểm tra giữa kỳ",
+				"Lịch kiểm tra chi tiết đã được cập nhật. Học sinh kiểm tra phòng thi và thời gian trước ngày thi.",
+				SchoolNotificationCategory.ACADEMIC, today.minusDays(2), true, clock);
+		seedNotification(repository, "Cập nhật dịch vụ bán trú",
+				"Thực đơn tuần mới và thời gian nghỉ trưa đã được cập nhật trên hệ thống.",
+				SchoolNotificationCategory.SERVICE, today.minusDays(3), false, clock);
+		seedNotification(repository, "Workshop an toàn số",
+				"Đăng ký tham gia workshop tại mục Sự kiện trước 17:00 thứ Hai.",
+				SchoolNotificationCategory.GENERAL, today.minusDays(5), false, clock);
+		seedNotification(repository, "Nhắc cập nhật hồ sơ học sinh",
+				"Học sinh kiểm tra số điện thoại và thông tin lớp trong mục Tài khoản.",
+				SchoolNotificationCategory.GENERAL, today.minusDays(7), false, clock);
 	}
 
 	private void seedNotification(
-			SchoolNotificationRepository notificationRepository,
+			SchoolNotificationRepository repository,
 			String title,
 			String body,
 			SchoolNotificationCategory category,
-			Instant publishedAt,
-			boolean pinned
+			LocalDate date,
+			boolean pinned,
+			Clock clock
 	) {
-		notificationRepository.findByTitleAndPublishedAt(title, publishedAt)
-				.orElseGet(() -> notificationRepository.save(new SchoolNotification(
-						title,
-						body,
-						category,
-						SchoolNotificationAudience.HIGH_SCHOOL,
-						publishedAt,
-						pinned,
-						true
-				)));
+		repository.save(new SchoolNotification(
+				title,
+				body,
+				category,
+				SchoolNotificationAudience.HIGH_SCHOOL,
+				atSchoolTime(date, 7, 0, clock),
+				pinned,
+				true
+		));
+	}
+
+	private void seedApplications(
+			StudentApplicationRepository repository,
+			Map<Integer, Student> students,
+			LocalDate today,
+			Clock clock
+	) {
+		seedApplication(repository, students.get(1), StudentApplicationType.ABSENCE,
+				StudentApplicationStatus.PENDING, today.plusDays(1), null,
+				"Em bị ốm cần nghỉ học một ngày", "Gia đình sẽ bổ sung giấy xác nhận nếu cần.", clock);
+		seedApplication(repository, students.get(1), StudentApplicationType.EARLY_LEAVE,
+				StudentApplicationStatus.APPROVED, today.plusDays(2), LocalTime.of(15, 30),
+				"Em có lịch khám sức khỏe", "Xin phép ra về sau tiết học buổi chiều.", clock);
+		seedApplication(repository, students.get(1), StudentApplicationType.LATE_ARRIVAL,
+				StudentApplicationStatus.REJECTED, today.minusDays(1), LocalTime.of(8, 30),
+				"Em dự kiến đến trường muộn", "Xin phép vào lớp từ tiết 2.", clock);
+		seedApplication(repository, students.get(1), StudentApplicationType.DOCUMENT_REQUEST,
+				StudentApplicationStatus.APPROVED, today.plusDays(3), null,
+				"Em cần giấy xác nhận học sinh", "Dùng để bổ sung hồ sơ dự thi học thuật.", clock);
+
+		for (int number = 2; number <= 14; number++) {
+			StudentApplicationStatus status = switch (number % 3) {
+				case 0 -> StudentApplicationStatus.APPROVED;
+				case 1 -> StudentApplicationStatus.REJECTED;
+				default -> StudentApplicationStatus.PENDING;
+			};
+			StudentApplicationType type = switch (number % 4) {
+				case 0 -> StudentApplicationType.ABSENCE;
+				case 1 -> StudentApplicationType.EARLY_LEAVE;
+				case 2 -> StudentApplicationType.LATE_ARRIVAL;
+				default -> StudentApplicationType.DOCUMENT_REQUEST;
+			};
+			seedApplication(repository, students.get(number), type, status,
+					today.plusDays(number % 6 + 1), type == StudentApplicationType.DOCUMENT_REQUEST ? null : LocalTime.of(15, 0),
+					"Đơn mẫu của học sinh %02d".formatted(number),
+					"Dữ liệu synthetic phục vụ kiểm thử danh sách và quy trình duyệt đơn.", clock);
+		}
 	}
 
 	private void seedApplication(
-			StudentApplicationRepository applicationRepository,
+			StudentApplicationRepository repository,
 			Student student,
 			StudentApplicationType type,
 			StudentApplicationStatus status,
 			LocalDate targetDate,
 			LocalTime requestedTime,
 			String reason,
-			String details
+			String details,
+			Clock clock
 	) {
-		applicationRepository.findByStudentAndTypeAndTargetDateAndReason(student, type, targetDate, reason)
-				.orElseGet(() -> {
-					var application = new StudentApplication(
-							student,
-							type,
-							targetDate,
-							requestedTime,
-							reason,
-							details
-					);
-					if (status == StudentApplicationStatus.APPROVED) {
-						application.approve("Demo approval", atSchoolTime(2026, 7, 1, 8, 0));
-					}
-					if (status == StudentApplicationStatus.REJECTED) {
-						application.reject("Demo rejection", atSchoolTime(2026, 7, 1, 8, 0));
-					}
-					return applicationRepository.save(application);
-				});
+		var application = new StudentApplication(student, type, targetDate, requestedTime, reason, details);
+		Instant reviewedAt = Instant.now(clock).minusSeconds(3600);
+		if (status == StudentApplicationStatus.APPROVED) {
+			application.approve("Đã xác nhận thông tin demo", reviewedAt);
+		} else if (status == StudentApplicationStatus.REJECTED) {
+			application.reject("Vui lòng bổ sung thông tin người giám hộ", reviewedAt);
+		}
+		repository.save(application);
+	}
+
+	private void seedClubs(
+			SchoolClubRepository clubRepository,
+			ClubRegistrationRepository registrationRepository,
+			Map<Integer, Student> students,
+			Clock clock
+	) {
+		Map<String, SchoolClub> clubs = new LinkedHashMap<>();
+		clubs.put("football", seedClub(clubRepository, "CLB Bóng đá",
+				"Rèn luyện thể lực, chiến thuật và tinh thần đội nhóm.", "Thứ ba, thứ năm · 16:10-17:30", "Sân bóng"));
+		clubs.put("debate", seedClub(clubRepository, "CLB Tranh biện tiếng Anh",
+				"Luyện phản biện và thuyết trình bằng tiếng Anh.", "Thứ tư · 16:10-17:20", "Phòng 10A1"));
+		clubs.put("art", seedClub(clubRepository, "CLB Mỹ thuật",
+				"Thiết kế poster và sản phẩm sáng tạo cho sự kiện trường.", "Thứ tư · 16:10-17:20", "Phòng Mỹ thuật"));
+		clubs.put("robotics", seedClub(clubRepository, "CLB Robotics",
+				"Lắp ráp robot, lập trình cảm biến và thi đấu STEM.", "Thứ sáu · 16:10-17:30", "Phòng STEM"));
+		clubs.put("music", seedClub(clubRepository, "CLB Âm nhạc",
+				"Tập luyện thanh nhạc, nhạc cụ và biểu diễn.", "Thứ hai · 16:10-17:20", "Phòng Năng khiếu"));
+		clubs.put("media", seedClub(clubRepository, "CLB Truyền thông",
+				"Chụp ảnh, quay dựng video và truyền thông sự kiện.", "Thứ năm · 16:10-17:20", "Phòng Studio"));
+		clubs.put("basketball", seedClub(clubRepository, "CLB Bóng rổ",
+				"Rèn kỹ thuật bóng rổ và tham gia giải liên trường.", "Thứ hai, thứ tư · 16:10-17:30", "Nhà đa năng"));
+		clubs.put("coding", seedClub(clubRepository, "CLB Lập trình",
+				"Xây dựng ứng dụng và luyện tư duy giải quyết vấn đề.", "Thứ bảy · 10:15-11:30", "Phòng Lab CNTT"));
+
+		seedClubRegistration(registrationRepository, students.get(1), clubs.get("football"), clock);
+		seedClubRegistration(registrationRepository, students.get(2), clubs.get("robotics"), clock);
+		seedClubRegistration(registrationRepository, students.get(3), clubs.get("debate"), clock);
+		seedClubRegistration(registrationRepository, students.get(13), clubs.get("music"), clock);
+		seedClubRegistration(registrationRepository, students.get(25), clubs.get("basketball"), clock);
 	}
 
 	private SchoolClub seedClub(
-			SchoolClubRepository clubRepository,
+			SchoolClubRepository repository,
 			String name,
 			String description,
 			String scheduleText,
 			String location
 	) {
-		return clubRepository.findByName(name)
+		return repository.findByName(name)
 				.map((club) -> {
 					club.updateDetails(description, scheduleText, location, true);
-					return clubRepository.save(club);
+					return repository.save(club);
 				})
-				.orElseGet(() -> clubRepository.save(new SchoolClub(
+				.orElseGet(() -> repository.save(new SchoolClub(
 						name,
 						description,
 						scheduleText,
@@ -572,19 +585,20 @@ public class DemoSchoolDataSeeder {
 	}
 
 	private void seedClubRegistration(
-			ClubRegistrationRepository registrationRepository,
+			ClubRegistrationRepository repository,
 			Student student,
-			SchoolClub club
+			SchoolClub club,
+			Clock clock
 	) {
-		registrationRepository.findByStudentAndClub(student, club)
-				.orElseGet(() -> {
-					var registration = new ClubRegistration(student, club);
-					registration.approve(atSchoolTime(2026, 7, 1, 8, 0));
-					return registrationRepository.save(registration);
-				});
+		var registration = new ClubRegistration(student, club);
+		registration.approve(Instant.now(clock).minusSeconds(3600));
+		repository.save(registration);
 	}
 
-	private Instant atSchoolTime(int year, int month, int day, int hour, int minute) {
-		return OffsetDateTime.of(year, month, day, hour, minute, 0, 0, ZoneOffset.ofHours(7)).toInstant();
+	private Instant atSchoolTime(LocalDate date, int hour, int minute, Clock clock) {
+		return date.atTime(hour, minute).atZone(clock.getZone()).toInstant();
+	}
+
+	private record SubjectFixture(String code, String name, int displayOrder) {
 	}
 }

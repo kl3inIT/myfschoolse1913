@@ -177,6 +177,26 @@ Flutter reads `API_BASE_URL` from `--dart-define`, defaulting to
 Use `http://localhost:8080` for Flutter Web and `http://10.0.2.2:8080` for an
 Android emulator that talks to a backend running on the host machine.
 
+## Demo Fixture
+
+The conditional seeders under `bootstrap/` and `document/` run when
+`SEED_DEMO_USER=true`:
+
+- `DemoUserSeeder` creates one admin plus 36 synthetic student accounts;
+- `DemoSchoolDataSeeder` creates academic year `2026-2027`, three populated
+  classes, 18 subjects, eight grades per student, a seven-day timetable, five
+  events, six notifications, 17 initial applications, eight clubs, and five
+  registrations;
+- `DemoKnowledgeBaseSeeder` reads six Markdown files from
+  `src/main/resources/demo/knowledge/` and sends them through the production
+  embedding/pgvector ingestion path.
+
+The seed flag is for creating/resetting a disposable demo environment. Leave it
+off during normal demo runs because the school-data seeder deliberately resets
+grades, timetables, applications, events, notifications, and registrations.
+The local reset procedure and walkthrough live in
+`docs/guidelines/teacher-demo-runbook.md`.
+
 ## Commands
 
 ```powershell
