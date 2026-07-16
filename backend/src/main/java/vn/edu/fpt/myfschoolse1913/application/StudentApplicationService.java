@@ -48,9 +48,11 @@ public class StudentApplicationService {
 				student,
 				request.type(),
 				request.targetDate(),
+				request.targetDate(),
 				request.requestedTime(),
 				request.reason().trim(),
-				request.details() == null ? null : request.details().trim()
+				request.details() == null ? null : request.details().trim(),
+				student.getUser()
 		));
 
 		return toItem(application);

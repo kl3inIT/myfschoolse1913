@@ -18,150 +18,158 @@ import java.util.UUID;
 @Table(name = "class_timetable_slots")
 public class ClassTimetableSlot {
 
-	@Id
-	@GeneratedValue
-	private UUID id;
+  @Id @GeneratedValue private UUID id;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "class_id", nullable = false)
-	private SchoolClass schoolClass;
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "class_id", nullable = false)
+  private SchoolClass schoolClass;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "semester_id", nullable = false)
-	private Semester semester;
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "semester_id", nullable = false)
+  private Semester semester;
 
-	@Column(name = "day_index", nullable = false)
-	private short dayIndex;
+  @Column(name = "day_index", nullable = false)
+  private short dayIndex;
 
-	@Column(name = "lesson_number", nullable = false)
-	private int lessonNumber;
+  @Column(name = "lesson_number", nullable = false)
+  private int lessonNumber;
 
-	@Enumerated(EnumType.STRING)
-	@Column(name = "slot_type", nullable = false, length = 30)
-	private ClassTimetableSlotType slotType;
+  @Enumerated(EnumType.STRING)
+  @Column(name = "slot_type", nullable = false, length = 30)
+  private ClassTimetableSlotType slotType;
 
-	@Column(nullable = false, length = 120)
-	private String title;
+  @Column(nullable = false, length = 120)
+  private String title;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "subject_id")
-	private Subject subject;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "subject_id")
+  private Subject subject;
 
-	@Column(name = "room_name", length = 80)
-	private String roomName;
+  @Column(name = "room_name", length = 80)
+  private String roomName;
 
-	@Column(name = "teacher_name", length = 120)
-	private String teacherName;
+  @Column(name = "teacher_name", length = 120)
+  private String teacherName;
 
-	@Column(name = "starts_at", nullable = false)
-	private LocalTime startsAt;
+  @Column(name = "teaching_assignment_id")
+  private UUID teachingAssignmentId;
 
-	@Column(name = "ends_at", nullable = false)
-	private LocalTime endsAt;
+  @Column(name = "starts_at", nullable = false)
+  private LocalTime startsAt;
 
-	@Column(name = "created_at", nullable = false)
-	private Instant createdAt = Instant.now();
+  @Column(name = "ends_at", nullable = false)
+  private LocalTime endsAt;
 
-	@Column(name = "updated_at", nullable = false)
-	private Instant updatedAt = Instant.now();
+  @Column(name = "created_at", nullable = false)
+  private Instant createdAt = Instant.now();
 
-	protected ClassTimetableSlot() {
-	}
+  @Column(name = "updated_at", nullable = false)
+  private Instant updatedAt = Instant.now();
 
-	public ClassTimetableSlot(
-			SchoolClass schoolClass,
-			Semester semester,
-			int dayIndex,
-			int lessonNumber,
-			ClassTimetableSlotType slotType,
-			String title,
-			Subject subject,
-			String roomName,
-			String teacherName,
-			LocalTime startsAt,
-			LocalTime endsAt
-	) {
-		this.schoolClass = schoolClass;
-		this.semester = semester;
-		this.dayIndex = (short) dayIndex;
-		this.lessonNumber = lessonNumber;
-		this.slotType = slotType;
-		this.title = title;
-		this.subject = subject;
-		this.roomName = roomName;
-		this.teacherName = teacherName;
-		this.startsAt = startsAt;
-		this.endsAt = endsAt;
-	}
+  protected ClassTimetableSlot() {}
 
-	public UUID getId() {
-		return id;
-	}
+  public ClassTimetableSlot(
+      SchoolClass schoolClass,
+      Semester semester,
+      int dayIndex,
+      int lessonNumber,
+      ClassTimetableSlotType slotType,
+      String title,
+      Subject subject,
+      String roomName,
+      String teacherName,
+      LocalTime startsAt,
+      LocalTime endsAt) {
+    this.schoolClass = schoolClass;
+    this.semester = semester;
+    this.dayIndex = (short) dayIndex;
+    this.lessonNumber = lessonNumber;
+    this.slotType = slotType;
+    this.title = title;
+    this.subject = subject;
+    this.roomName = roomName;
+    this.teacherName = teacherName;
+    this.startsAt = startsAt;
+    this.endsAt = endsAt;
+  }
 
-	public SchoolClass getSchoolClass() {
-		return schoolClass;
-	}
+  public UUID getId() {
+    return id;
+  }
 
-	public Semester getSemester() {
-		return semester;
-	}
+  public SchoolClass getSchoolClass() {
+    return schoolClass;
+  }
 
-	public Subject getSubject() {
-		return subject;
-	}
+  public Semester getSemester() {
+    return semester;
+  }
 
-	public Instant getUpdatedAt() {
-		return updatedAt;
-	}
+  public Subject getSubject() {
+    return subject;
+  }
 
-	public int getDayIndex() {
-		return dayIndex;
-	}
+  public Instant getUpdatedAt() {
+    return updatedAt;
+  }
 
-	public int getLessonNumber() {
-		return lessonNumber;
-	}
+  public int getDayIndex() {
+    return dayIndex;
+  }
 
-	public ClassTimetableSlotType getSlotType() {
-		return slotType;
-	}
+  public int getLessonNumber() {
+    return lessonNumber;
+  }
 
-	public String getTitle() {
-		return title;
-	}
+  public ClassTimetableSlotType getSlotType() {
+    return slotType;
+  }
 
-	public String getRoomName() {
-		return roomName;
-	}
+  public String getTitle() {
+    return title;
+  }
 
-	public String getTeacherName() {
-		return teacherName;
-	}
+  public String getRoomName() {
+    return roomName;
+  }
 
-	public LocalTime getStartsAt() {
-		return startsAt;
-	}
+  public String getTeacherName() {
+    return teacherName;
+  }
 
-	public LocalTime getEndsAt() {
-		return endsAt;
-	}
+  public UUID getTeachingAssignmentId() {
+    return teachingAssignmentId;
+  }
 
-	public void updateDetails(
-			ClassTimetableSlotType slotType,
-			String title,
-			Subject subject,
-			String roomName,
-			String teacherName,
-			LocalTime startsAt,
-			LocalTime endsAt
-	) {
-		this.slotType = slotType;
-		this.title = title;
-		this.subject = subject;
-		this.roomName = roomName;
-		this.teacherName = teacherName;
-		this.startsAt = startsAt;
-		this.endsAt = endsAt;
-		this.updatedAt = Instant.now();
-	}
+  public LocalTime getStartsAt() {
+    return startsAt;
+  }
+
+  public LocalTime getEndsAt() {
+    return endsAt;
+  }
+
+  public void updateDetails(
+      ClassTimetableSlotType slotType,
+      String title,
+      Subject subject,
+      String roomName,
+      String teacherName,
+      LocalTime startsAt,
+      LocalTime endsAt) {
+    this.slotType = slotType;
+    this.title = title;
+    this.subject = subject;
+    this.roomName = roomName;
+    this.teacherName = teacherName;
+    this.startsAt = startsAt;
+    this.endsAt = endsAt;
+    this.updatedAt = Instant.now();
+  }
+
+  public void linkTeachingAssignment(UUID teachingAssignmentId, String teacherName) {
+    this.teachingAssignmentId = teachingAssignmentId;
+    this.teacherName = teacherName;
+    this.updatedAt = Instant.now();
+  }
 }

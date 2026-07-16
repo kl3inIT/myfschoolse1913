@@ -67,6 +67,13 @@ server:
   port: ${SERVER_PORT:8080}
 
 app:
+  cors:
+    allowed-origin-patterns: ${CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:*,http://127.0.0.1:*}
+  security:
+    jwt:
+      private-key-location: ${JWT_PRIVATE_KEY_LOCATION:}
+      public-key-location: ${JWT_PUBLIC_KEY_LOCATION:}
+
   auth:
     access-token-ttl: ${ACCESS_TOKEN_TTL:15m}
     refresh-token-ttl: ${REFRESH_TOKEN_TTL:30d}
@@ -79,3 +86,5 @@ app:
   bootstrap:
     demo-user:
       enabled: ${SEED_DEMO_USER:false}
+    demo-knowledge:
+      enabled: ${SEED_DEMO_KNOWLEDGE:false}

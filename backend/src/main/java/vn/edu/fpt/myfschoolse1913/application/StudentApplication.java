@@ -15,6 +15,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.UUID;
 import vn.edu.fpt.myfschoolse1913.student.Student;
+import vn.edu.fpt.myfschoolse1913.user.AppUser;
 
 @Entity
 @Table(name = "student_applications")
@@ -39,6 +40,9 @@ public class StudentApplication {
 	@Column(name = "target_date", nullable = false)
 	private LocalDate targetDate;
 
+	@Column(name = "end_date")
+	private LocalDate endDate;
+
 	@Column(name = "requested_time")
 	private LocalTime requestedTime;
 
@@ -60,6 +64,14 @@ public class StudentApplication {
 	@Column(name = "reviewed_at")
 	private Instant reviewedAt;
 
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "created_by_user_id")
+	private AppUser createdBy;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "reviewed_by_user_id")
+	private AppUser reviewedBy;
+
 	protected StudentApplication() {
 	}
 
@@ -74,9 +86,25 @@ public class StudentApplication {
 		this.student = student;
 		this.type = type;
 		this.targetDate = targetDate;
+		this.endDate = targetDate;
 		this.requestedTime = requestedTime;
 		this.reason = reason;
 		this.details = details;
+	}
+
+	public StudentApplication(
+			Student student,
+			StudentApplicationType type,
+			LocalDate targetDate,
+			LocalDate endDate,
+			LocalTime requestedTime,
+			String reason,
+			String details,
+			AppUser createdBy
+	) {
+		this(student, type, targetDate, requestedTime, reason, details);
+		this.endDate = endDate == null ? targetDate : endDate;
+		this.createdBy = createdBy;
 	}
 
 	public UUID getId() {
@@ -107,6 +135,10 @@ public class StudentApplication {
 		return targetDate;
 	}
 
+	public LocalDate getEndDate() {
+		return endDate == null ? targetDate : endDate;
+	}
+
 	public LocalTime getRequestedTime() {
 		return requestedTime;
 	}
@@ -123,6 +155,9 @@ public class StudentApplication {
 		return createdAt;
 	}
 
+	public AppUser getCreatedBy() { return createdBy; }
+	public AppUser getReviewedBy() { return reviewedBy; }
+
 	public void approve(String reviewerNote, Instant reviewedAt) {
 		this.status = StudentApplicationStatus.APPROVED;
 		this.reviewerNote = reviewerNote;
@@ -135,5 +170,15 @@ public class StudentApplication {
 		this.reviewerNote = reviewerNote;
 		this.reviewedAt = reviewedAt;
 		this.updatedAt = reviewedAt;
+	}
+
+	public void approve(String reviewerNote, Instant reviewedAt, AppUser reviewedBy) {
+		approve(reviewerNote, reviewedAt);
+		this.reviewedBy = reviewedBy;
+	}
+
+	public void reject(String reviewerNote, Instant reviewedAt, AppUser reviewedBy) {
+		reject(reviewerNote, reviewedAt);
+		this.reviewedBy = reviewedBy;
 	}
 }

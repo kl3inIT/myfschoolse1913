@@ -15,6 +15,7 @@ import {
   LayoutDashboard,
   LogOut,
   School,
+  UserRoundCog,
   Users,
   type LucideIcon,
 } from 'lucide-react'
@@ -39,13 +40,14 @@ import {
   SidebarRail,
   SidebarTrigger,
 } from '@/components/ui/sidebar'
-import { clearSession, getStoredSession } from '@/lib/api'
+import { clearSession, getStoredSession, type UserRole } from '@/lib/api'
 
 type AdminShellProps = {
   children: ReactNode
   title?: string
   breadcrumbSection?: string
   breadcrumbPage?: string
+  allowedRoles?: UserRole[]
 }
 
 type NavItem = {
@@ -68,6 +70,12 @@ const navItems: NavItem[] = [
     icon: School,
     to: '/classes',
     matchPrefixes: ['/classes'],
+  },
+  {
+    label: 'Phân công & liên kết',
+    icon: UserRoundCog,
+    to: '/school-work',
+    matchPrefixes: ['/school-work'],
   },
   {
     label: 'Điểm số',
@@ -101,6 +109,10 @@ const navItems: NavItem[] = [
   },
 ]
 
+const teacherNavItems: NavItem[] = [
+  { label: 'Không gian giáo viên', icon: LayoutDashboard, to: '/' },
+]
+
 function isNavItemActive(item: NavItem, pathname: string) {
   if (!item.to) {
     return false
@@ -118,6 +130,7 @@ export function AdminShell({
   title = 'Học sinh',
   breadcrumbSection = 'Học sinh',
   breadcrumbPage = 'Danh sách',
+  allowedRoles = ['ADMIN', 'TEACHER'],
 }: AdminShellProps) {
   const navigate = useNavigate()
   const pathname = useRouterState({
@@ -125,9 +138,15 @@ export function AdminShell({
   })
   const session = getStoredSession()
 
-  if (!session || session.user.role !== 'ADMIN') {
+  if (!session || !allowedRoles.includes(session.user.role)) {
     return <Navigate to="/login" />
   }
+  if (session.user.role === 'TEACHER' && pathname !== '/') {
+    return <Navigate to="/" />
+  }
+
+  const visibleNavItems =
+    session.user.role === 'TEACHER' ? teacherNavItems : navItems
 
   function logout() {
     clearSession()
@@ -144,14 +163,18 @@ export function AdminShell({
             </div>
             <div className="min-w-0 group-data-[collapsible=icon]:hidden">
               <p className="text-xs text-muted-foreground">MyFSchool</p>
-              <p className="truncate text-sm font-semibold">Bảng quản trị</p>
+              <p className="truncate text-sm font-semibold">
+                {session.user.role === 'TEACHER'
+                  ? 'Không gian giáo viên'
+                  : 'Bảng quản trị'}
+              </p>
             </div>
           </div>
         </SidebarHeader>
 
         <SidebarContent>
           <SidebarMenu className="px-2">
-            {navItems.map((item) => (
+            {visibleNavItems.map((item) => (
               <SidebarMenuItem key={item.label}>
                 {item.to ? (
                   <SidebarMenuButton
@@ -210,7 +233,9 @@ export function AdminShell({
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem>
-                  <BreadcrumbLink href="/">Quản trị</BreadcrumbLink>
+                  <BreadcrumbLink href="/">
+                    {session.user.role === 'TEACHER' ? 'Giáo viên' : 'Quản trị'}
+                  </BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
@@ -235,5 +260,5 @@ export function AdminShell({
 }
 
 function adminRoleLabel(role: string) {
-  return role === 'ADMIN' ? 'QUẢN TRỊ' : role
+  return role === 'ADMIN' ? 'QUẢN TRỊ' : role === 'TEACHER' ? 'GIÁO VIÊN' : role
 }

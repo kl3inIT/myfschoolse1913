@@ -27,6 +27,10 @@ public class DemoUserSeeder {
 					UserRole.ADMIN,
 					true
 			);
+			seedUser(userRepository, DemoStudentFixtures.TEACHER_PHONE, passwordHash, "Cô Nguyễn Ngọc Lan", UserRole.TEACHER, true);
+			seedUser(userRepository, DemoStudentFixtures.SECOND_TEACHER_PHONE, passwordHash, "Thầy Trần Minh Long", UserRole.TEACHER, true);
+			seedUser(userRepository, DemoStudentFixtures.PARENT_PHONE, passwordHash, "Chị Nguyễn Thu Hà", UserRole.PARENT, true);
+			seedUser(userRepository, DemoStudentFixtures.SECOND_PARENT_PHONE, passwordHash, "Anh Trần Quốc Huy", UserRole.PARENT, true);
 			for (var fixture : DemoStudentFixtures.STUDENTS) {
 				seedUser(
 						userRepository,

@@ -49,3 +49,9 @@ app.*.map.json
 .playwright-cli/
 .playwright-mcp/
 login-*.png
+
+# Server-local deployment state and secrets
+.env
+secrets/
+backups/
+.last-deploy.txt

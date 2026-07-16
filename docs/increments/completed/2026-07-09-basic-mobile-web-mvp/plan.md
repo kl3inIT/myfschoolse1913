@@ -19,7 +19,8 @@ All five steps verified against the running backend + northstar Postgres:
    slots) → notifications + detail → applications (pending/approved/
    rejected tabs reflect admin review) → events → clubs → account → logout.
 
-Remaining before closing the increment: the actual teacher demo.
+The teacher demo and subsequent four-role browser walkthrough were completed by
+2026-07-16. This increment is closed.
 
 ## 1. Stabilize Docs And Runbook
 

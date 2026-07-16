@@ -8,13 +8,14 @@ import { AdminShell } from './ui/admin-shell.tsx'
 import { ApplicationManagementPage } from './features/applications/application-management-page.tsx'
 import { LoginPage } from './features/auth/login-page.tsx'
 import { ClassManagementPage } from './features/classes/class-management-page.tsx'
-import { DashboardPage } from './features/dashboard/dashboard-page.tsx'
 import { AiManagementPage } from './features/ai/ai-management-page.tsx'
 import { GradeManagementPage } from './features/grades/grade-management-page.tsx'
 import { NotificationManagementPage } from './features/notifications/notification-management-page.tsx'
 import { StudentDetailPage } from './features/students/student-detail-page.tsx'
 import { StudentManagementPage } from './features/students/student-management-page.tsx'
 import { TimetableManagementPage } from './features/timetable/timetable-management-page.tsx'
+import { SchoolWorkManagementPage } from './features/school-work/school-work-management-page.tsx'
+import { HomeRoutePage } from './features/home/home-route-page.tsx'
 
 const rootRoute = createRootRoute({
   component: () => <Outlet />,
@@ -29,15 +30,7 @@ const loginRoute = createRoute({
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
-  component: () => (
-    <AdminShell
-      title="Tổng quan"
-      breadcrumbSection="Tổng quan"
-      breadcrumbPage="Bảng điều khiển"
-    >
-      <DashboardPage />
-    </AdminShell>
-  ),
+  component: HomeRoutePage,
 })
 
 const studentsRoute = createRoute({
@@ -147,6 +140,21 @@ const aiRoute = createRoute({
   ),
 })
 
+const schoolWorkRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/school-work',
+  component: () => (
+    <AdminShell
+      title="Phân công & liên kết"
+      breadcrumbSection="Nhân sự học vụ"
+      breadcrumbPage="Phân công"
+      allowedRoles={['ADMIN']}
+    >
+      <SchoolWorkManagementPage />
+    </AdminShell>
+  ),
+})
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
   indexRoute,
@@ -158,6 +166,7 @@ const routeTree = rootRoute.addChildren([
   timetableRoute,
   applicationsRoute,
   aiRoute,
+  schoolWorkRoute,
 ])
 
 export const router = createRouter({

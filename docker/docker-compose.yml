@@ -1,0 +1,51 @@
+name: myfschool
+
+services:
+  api:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    image: ${MYFSCHOOL_API_IMAGE:-myfschool-api:latest}
+    container_name: myfschool-api
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:postgresql://zeromail-postgres:5432/${POSTGRES_DB:-myfschoolse1913}
+      DB_USERNAME: ${POSTGRES_USER:-myfschool}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      JWT_PRIVATE_KEY_LOCATION: file:/run/secrets/jwt-private.pem
+      JWT_PUBLIC_KEY_LOCATION: file:/run/secrets/jwt-public.pem
+      CORS_ALLOWED_ORIGIN_PATTERNS: ${CORS_ALLOWED_ORIGIN_PATTERNS:-https://myfschool.kl3in.tech}
+      SEED_DEMO_USER: ${SEED_DEMO_USER:-false}
+      SEED_DEMO_KNOWLEDGE: ${SEED_DEMO_KNOWLEDGE:-false}
+      EXPOSE_PASSWORD_RESET_OTP: "false"
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ASSISTANT_CHAT_MODEL: ${ASSISTANT_CHAT_MODEL:-gpt-5.5}
+      TZ: Asia/Ho_Chi_Minh
+    volumes:
+      - ../secrets:/run/secrets:ro
+    networks:
+      - proxy
+      - internal
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 120s
+    mem_limit: 1g
+    mem_reservation: 512m
+    memswap_limit: 1g
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+networks:
+  proxy:
+    name: myfschool-proxy
+    external: true
+  internal:
+    name: myfschool-internal
+    external: true

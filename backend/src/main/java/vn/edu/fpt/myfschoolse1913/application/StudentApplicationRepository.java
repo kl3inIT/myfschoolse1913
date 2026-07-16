@@ -75,4 +75,13 @@ public interface StudentApplicationRepository extends JpaRepository<StudentAppli
 
 	@Transactional
 	void deleteByStudent(Student student);
+
+	@Query("""
+			select application from StudentApplication application
+			join fetch application.student student join fetch student.user
+			join fetch student.schoolClass
+			where student.schoolClass.id = :classId
+			order by application.createdAt desc
+			""")
+	List<StudentApplication> findByClassIdForHomeroom(@Param("classId") UUID classId);
 }

@@ -61,7 +61,7 @@ export async function authorizedJson<TResponse>(
 ) {
   const session = getStoredSession()
   if (!session) {
-    throw new Error('Bạn cần đăng nhập quản trị')
+    throw new Error('Bạn cần đăng nhập cổng nhà trường')
   }
 
   const response = await fetch(path, {
@@ -89,7 +89,7 @@ export async function authorizedForm<TResponse>(
 ) {
   const session = getStoredSession()
   if (!session) {
-    throw new Error('Bạn cần đăng nhập quản trị')
+    throw new Error('Bạn cần đăng nhập cổng nhà trường')
   }
 
   // No Content-Type header: the browser sets multipart/form-data with the

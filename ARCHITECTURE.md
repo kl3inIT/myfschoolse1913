@@ -6,9 +6,9 @@ active increment.
 
 ## Stack
 
-- Mobile/web demo client: Flutter, Dart, Material, `go_router`, `http`,
+- Student/parent mobile client: Flutter, Dart, Material, `go_router`, `http`,
   `flutter_secure_storage`, `flutter_lints`.
-- Admin web client: Vite + React + TypeScript in `admin-web/` (pnpm), Tailwind
+- Admin/teacher web client: Vite + React + TypeScript in `admin-web/` (pnpm), Tailwind
   CSS, shadcn/ui, TanStack Router, TanStack Query, react-hook-form + zod,
   SheetJS (`xlsx`) for Excel import.
 - Backend: Spring Boot 4.1, Java toolchain 25, Gradle Kotlin DSL, Spring Data
@@ -76,6 +76,8 @@ Current route surface:
 - `/notifications`
 - `/notifications/:notificationId`
 - `/account`
+- `/parent` (`PARENT` only)
+- `/mobile-unsupported` (`ADMIN`/`TEACHER`; these roles use React)
 
 ## Backend Architecture
 
@@ -93,6 +95,8 @@ vn.edu.fpt.myfschoolse1913
   club           clubs and club registration
   event          school events
   notification   notifications and read state
+  schoolwork     teacher/parent profiles, assignments, guardian links,
+                 attendance, assessment results, conduct, scoped workflows
   security       Spring Security and JWT infrastructure
   shared         cross-module API errors and common web support
   bootstrap      local/demo data seeders
@@ -129,6 +133,21 @@ Authenticated student APIs:
 - `POST /api/students/me/assistant/chat` (SSE stream; see
   `docs/specs/domains/assistant.md`)
 
+Teacher APIs (require `ROLE_TEACHER` and an active assignment):
+
+- `GET /api/teachers/me/workspace`
+- `GET /api/teachers/me/assignments/{assignmentId}/classroom`
+- `PUT /api/teachers/me/assignments/{assignmentId}/attendance`
+- `PUT /api/teachers/me/assignments/{assignmentId}/grades`
+- `GET /api/teachers/me/homeroom/{classId}/applications`
+- `PUT /api/teachers/me/homeroom/{classId}/applications/{applicationId}`
+- `PUT /api/teachers/me/homeroom/{classId}/conduct`
+
+Parent APIs (require `ROLE_PARENT` and an active guardian link):
+
+- `GET /api/parents/me/workspace?studentId=`
+- `POST /api/parents/me/children/{studentId}/applications`
+
 Admin APIs (require `ROLE_ADMIN`):
 
 - `POST /api/admin/students/import`
@@ -154,6 +173,13 @@ Admin APIs (require `ROLE_ADMIN`):
 - `DELETE /api/admin/documents/{documentId}`
 - `GET /api/admin/assistant/settings`
 - `PUT /api/admin/assistant/settings`
+- `GET /api/admin/school-work`
+- `POST /api/admin/school-work/teachers`
+- `POST /api/admin/school-work/parents`
+- `POST /api/admin/school-work/teaching-assignments`
+- `POST /api/admin/school-work/homeroom-assignments`
+- `POST /api/admin/school-work/guardian-links`
+- `POST /api/admin/school-work/assessment-results/{resultId}/correction`
 
 ## Runtime Configuration
 
@@ -182,7 +208,8 @@ Android emulator that talks to a backend running on the host machine.
 The conditional seeders under `bootstrap/` and `document/` run when
 `SEED_DEMO_USER=true`:
 
-- `DemoUserSeeder` creates one admin plus 36 synthetic student accounts;
+- `DemoUserSeeder` creates one admin, two teachers, two parents, and 36
+  synthetic student accounts;
 - `DemoSchoolDataSeeder` creates academic year `2026-2027`, three populated
   classes, 18 subjects, eight grades per student, a seven-day timetable, five
   events, six notifications, 17 initial applications, eight clubs, and five
@@ -190,6 +217,8 @@ The conditional seeders under `bootstrap/` and `document/` run when
 - `DemoKnowledgeBaseSeeder` reads six Markdown files from
   `src/main/resources/demo/knowledge/` and sends them through the production
   embedding/pgvector ingestion path.
+- `DemoSchoolWorkSeeder` creates subject/homeroom assignments, three verified
+  guardian links, published assessment components, attendance, and conduct.
 
 The seed flag is for creating/resetting a disposable demo environment. Leave it
 off during normal demo runs because the school-data seeder deliberately resets
@@ -210,9 +239,9 @@ cd backend
 .\gradlew.bat bootRun
 
 cd admin-web
-npm run dev
-npm run lint
-npm run build
+pnpm dev
+pnpm lint
+pnpm build
 ```
 
 Do not use `bootRun` as a terminating verification gate. It is for running the
