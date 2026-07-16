@@ -35,6 +35,9 @@ public class SecurityConfig {
 				.authorizeHttpRequests((authorize) -> authorize
 						.requestMatchers("/api/auth/**", "/api/health", "/actuator/health/**").permitAll()
 						.requestMatchers("/api/admin/**").hasRole("ADMIN")
+						.requestMatchers("/api/teachers/**").hasRole("TEACHER")
+						.requestMatchers("/api/parents/**").hasRole("PARENT")
+						.requestMatchers("/api/students/**").hasRole("STUDENT")
 						.anyRequest().authenticated()
 				)
 				.oauth2ResourceServer((oauth2) -> oauth2.jwt((jwt) -> jwt

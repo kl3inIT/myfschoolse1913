@@ -26,6 +26,14 @@ public interface StudentRepository extends JpaRepository<Student, UUID> {
 	Optional<Student> findByStudentCode(String studentCode);
 
 	@Query("""
+			select student from Student student
+			join fetch student.user
+			where student.schoolClass.id = :classId
+			order by student.studentCode
+			""")
+	List<Student> findByClassIdWithUser(@Param("classId") UUID classId);
+
+	@Query("""
 			select student
 			from Student student
 			join fetch student.user

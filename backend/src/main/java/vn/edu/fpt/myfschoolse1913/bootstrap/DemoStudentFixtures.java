@@ -7,6 +7,10 @@ final class DemoStudentFixtures {
 	static final String DEFAULT_PASSWORD = "Password123";
 	static final String ADMIN_PHONE = "0900000000";
 	static final String DEMO_STUDENT_PHONE = "0900000001";
+	static final String TEACHER_PHONE = "0911000001";
+	static final String SECOND_TEACHER_PHONE = "0911000002";
+	static final String PARENT_PHONE = "0922000001";
+	static final String SECOND_PARENT_PHONE = "0922000002";
 
 	static final List<StudentFixture> STUDENTS = List.of(
 			student(1, "Nguyễn Minh Anh", "10A1"),

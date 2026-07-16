@@ -46,13 +46,17 @@ export function LoginForm({
   async function submit(values: LoginFormValues) {
     try {
       const session = await login(values.phoneNumber, values.password)
-      if (session.user.role !== 'ADMIN') {
-        toast.error('Tài khoản này không có quyền quản trị')
+      if (session.user.role !== 'ADMIN' && session.user.role !== 'TEACHER') {
+        toast.error('Cổng web này dành cho quản trị viên và giáo viên')
         return
       }
 
       storeSession(session)
-      toast.success('Đăng nhập quản trị thành công')
+      toast.success(
+        session.user.role === 'TEACHER'
+          ? 'Đăng nhập giáo viên thành công'
+          : 'Đăng nhập quản trị thành công',
+      )
       await navigate({ to: '/' })
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Đăng nhập thất bại')
@@ -65,9 +69,10 @@ export function LoginForm({
     <div className={cn('flex flex-col gap-6', className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle>Đăng nhập quản trị</CardTitle>
+          <CardTitle>Đăng nhập cổng trường học</CardTitle>
           <CardDescription>
-            Dùng tài khoản quản trị của trường để vào bảng điều khiển.
+            Quản trị viên quản lý toàn trường; giáo viên chỉ làm việc trên lớp
+            được phân công.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -100,10 +105,11 @@ export function LoginForm({
                   {isSubmitting ? (
                     <Loader2 className="size-4 animate-spin" />
                   ) : null}
-                  Vào trang quản trị
+                  Đăng nhập
                 </Button>
                 <FieldDescription className="text-center">
-                  Tài khoản demo: 0900000000 / Password123 khi bật dữ liệu mẫu.
+                  Admin: 0900000000 · Giáo viên: 0911000001 · mật khẩu
+                  Password123.
                 </FieldDescription>
               </Field>
             </FieldGroup>

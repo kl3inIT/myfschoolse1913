@@ -9,7 +9,7 @@ export function LoginPage() {
           <div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
             <GraduationCap className="size-4" />
           </div>
-          MyFSchool — Bảng quản trị
+          MyFSchool — Cổng nhà trường
         </div>
         <LoginForm />
       </div>

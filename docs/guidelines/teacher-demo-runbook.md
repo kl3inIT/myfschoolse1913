@@ -34,7 +34,7 @@ caches.
 ```powershell
 # terminal 2
 cd admin-web
-npm run dev
+pnpm dev
 
 # terminal 3
 flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:8080
@@ -43,6 +43,8 @@ flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:8080
 Credentials:
 
 - Admin: `0900000000 / Password123`
+- Teacher: `0911000001 / Password123`
+- Parent: `0922000001 / Password123`
 - Student: `0900000001 / Password123`
 
 ## Walkthrough
@@ -51,16 +53,35 @@ Credentials:
    locked accounts, recent notifications, and the six indexed AI documents.
 2. Student home: show profile `Nguyễn Minh Anh`, the current-day timetable,
    grades, events, applications, clubs, and notifications.
-3. Cross-surface application:
+3. Admin school work: open `Phân công & liên kết`, show the two teachers,
+   subject/homeroom assignments, verified guardian links, and the published
+   grade correction form.
+4. Teacher React: log in as `0911000001`, show the scoped 10A1 Math roster,
+   attendance, gradebook, homeroom applications, and per-student conduct form.
+5. Parent Flutter: log in as `0922000001`, switch linked children, and show only
+   published grades, attendance, schedule, notifications, and applications.
+6. Cross-surface application:
    - student creates a new absence application;
-   - admin opens `Đơn từ`, finds it at the top, and approves it with a note;
-   - student refreshes `Đã duyệt` and sees the approved application.
-4. Assistant personal grounding: ask `Điểm trung bình môn Toán của mình là bao
+   - the 10A1 homeroom teacher approves an eligible request of at most three
+     days; longer/document cases stay with admin;
+   - the student or linked parent refreshes and sees `Đã duyệt`.
+7. Assistant personal grounding: ask `Điểm trung bình môn Toán của mình là bao
    nhiêu?`; expected answer is `8.5` with the score components.
-5. Assistant RAG grounding: ask `Theo nội quy, mình có được tự ý dùng điện
+8. Assistant RAG grounding: ask `Theo nội quy, mình có được tự ý dùng điện
    thoại trong giờ học không?`; expected answer says no unless the teacher
    permits it and cites `Nội quy học sinh - Bản demo 2026-2027`.
-6. Log out from both clients.
+9. Log out from all clients.
+
+## Verified Four-Role Baseline (2026-07-16)
+
+- Flyway version 18; two teachers, two assignments, two parents, and three
+  active guardian links.
+- Backend clean tests, React lint/build, Flutter analyze/5 tests/APK build all
+  passed.
+- Admin correction wrote an audit row and teachers were blocked from changing
+  the published result.
+- Admin, Teacher React, and Parent Flutter were verified in real browsers with
+  no console errors.
 
 ## Verified Baseline (2026-07-11)
 

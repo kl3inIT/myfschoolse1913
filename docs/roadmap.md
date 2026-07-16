@@ -7,14 +7,16 @@ descriptions live in `docs/vision.md` or the increment's own design.
 
 | Increment | Status | Target |
 | --- | --- | --- |
-| Basic mobile and Flutter Web MVP | In progress | 2026-07-12 |
-
-See `docs/increments/active/2026-07-09-basic-mobile-web-mvp/plan.md`.
-
-Admin web MVP completed 2026-07-10 — history in
-`docs/increments/completed/2026-07-09-admin-web-mvp/`.
+No implementation increment is currently active. Completed design/plan history
+lives under `docs/increments/completed/`.
 
 ## Recently Built
+
+- Teacher + Parent roles (2026-07-16): real teaching/homeroom assignments,
+  verified guardian links, Teacher React workspace, Parent Flutter workspace,
+  attendance, multi-component grades using the Circular 22 formula, conduct,
+  short-leave homeroom review, and audited admin correction of published grades
+  (`docs/specs/domains/school-work.md`).
 
 - Repeatable Vietnamese teacher-demo fixture (2026-07-11): 36 synthetic
   students/three classes, curriculum-shaped subjects and grades, seven-day

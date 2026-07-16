@@ -20,6 +20,8 @@ import 'package:myfschoolse1913/vn/edu/fpt/ui/features/home/views/home_page.dart
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/notifications/views/notification_detail_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/notifications/views/notifications_page.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/ui/features/schedule/views/schedule_page.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/domain/models/user_role.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/ui/features/parent/views/parent_workspace_page.dart';
 
 abstract final class AppRoutes {
   static const login = '/login';
@@ -27,6 +29,8 @@ abstract final class AppRoutes {
   static const verifyOtp = '/forgot-password/verify';
   static const resetPassword = '/forgot-password/reset';
   static const home = '/home';
+  static const parent = '/parent';
+  static const mobileUnsupported = '/mobile-unsupported';
   static const assistant = '/assistant';
   static const semesterGrades = '/semester-grades';
   static const schedule = '/schedule';
@@ -65,7 +69,9 @@ GoRouter createAppRouter({required AppSessionController sessionController}) {
     redirect: (context, state) {
       final path = state.uri.path;
       final isLoginRoute = path == AppRoutes.login;
-      final isProtectedRoute =
+      final isParentRoute = path == AppRoutes.parent;
+      final isUnsupportedRoute = path == AppRoutes.mobileUnsupported;
+      final isStudentRoute =
           path == AppRoutes.home ||
           path == AppRoutes.assistant ||
           path == AppRoutes.semesterGrades ||
@@ -79,13 +85,34 @@ GoRouter createAppRouter({required AppSessionController sessionController}) {
           path.startsWith('${AppRoutes.notifications}/') ||
           path == AppRoutes.account ||
           path == AppRoutes.accountProfile;
+      final isProtectedRoute =
+          isStudentRoute || isParentRoute || isUnsupportedRoute;
+      final role = sessionController.session?.user.role;
+      final authenticatedLanding = switch (role) {
+        UserRole.parent => AppRoutes.parent,
+        UserRole.student => AppRoutes.home,
+        UserRole.teacher || UserRole.admin => AppRoutes.mobileUnsupported,
+        null => AppRoutes.login,
+      };
 
       return switch (sessionController.status) {
         AppSessionStatus.checking when isProtectedRoute => AppRoutes.login,
         AppSessionStatus.checking => null,
         AppSessionStatus.unauthenticated when isProtectedRoute =>
           AppRoutes.login,
-        AppSessionStatus.authenticated when isLoginRoute => AppRoutes.home,
+        AppSessionStatus.authenticated when isLoginRoute =>
+          authenticatedLanding,
+        AppSessionStatus.authenticated
+            when role == UserRole.parent && isStudentRoute =>
+          AppRoutes.parent,
+        AppSessionStatus.authenticated
+            when role == UserRole.student &&
+                (isParentRoute || isUnsupportedRoute) =>
+          AppRoutes.home,
+        AppSessionStatus.authenticated
+            when (role == UserRole.teacher || role == UserRole.admin) &&
+                !isUnsupportedRoute =>
+          AppRoutes.mobileUnsupported,
         _ => null,
       };
     },
@@ -158,6 +185,29 @@ GoRouter createAppRouter({required AppSessionController sessionController}) {
           return NoTransitionPage(
             child: HomePage(
               dashboardRepository: services.dashboardRepository,
+              sessionController: services.sessionController,
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.parent,
+        pageBuilder: (context, state) {
+          final services = AppDependencies.of(context);
+          return NoTransitionPage(
+            child: ParentWorkspacePage(
+              parentRepository: services.parentRepository,
+              sessionController: services.sessionController,
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.mobileUnsupported,
+        pageBuilder: (context, state) {
+          final services = AppDependencies.of(context);
+          return NoTransitionPage(
+            child: _MobileUnsupportedPage(
               sessionController: services.sessionController,
             ),
           );
@@ -336,4 +386,46 @@ GoRouter createAppRouter({required AppSessionController sessionController}) {
       );
     },
   );
+}
+
+class _MobileUnsupportedPage extends StatelessWidget {
+  const _MobileUnsupportedPage({required this.sessionController});
+
+  final AppSessionController sessionController;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.desktop_windows_outlined, size: 56),
+                const SizedBox(height: 20),
+                Text(
+                  'Vai trò này sử dụng cổng React',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Giáo viên và quản trị viên đăng nhập trên web. Flutter chỉ dành cho học sinh và phụ huynh.',
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                FilledButton.icon(
+                  onPressed: sessionController.logout,
+                  icon: const Icon(Icons.logout),
+                  label: const Text('Đăng xuất'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

@@ -10,6 +10,7 @@ import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/dashboard_repositor
 import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/events_repository.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/grades_repository.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/notifications_repository.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/parent_repository.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/schedule_repository.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/repositories/user_repository.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/services/authenticated_api_client.dart';
@@ -21,6 +22,7 @@ import 'package:myfschoolse1913/vn/edu/fpt/data/services/dashboard_api_service.d
 import 'package:myfschoolse1913/vn/edu/fpt/data/services/events_api_service.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/services/grades_api_service.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/services/notifications_api_service.dart';
+import 'package:myfschoolse1913/vn/edu/fpt/data/services/parent_api_service.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/services/schedule_api_service.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/services/token_storage.dart';
 import 'package:myfschoolse1913/vn/edu/fpt/data/services/user_api_service.dart';
@@ -38,6 +40,7 @@ class AppServices {
     required this.eventsApiService,
     required this.gradesApiService,
     required this.notificationsApiService,
+    required this.parentApiService,
     required this.scheduleApiService,
     required this.userApiService,
     required this.tokenStorage,
@@ -48,6 +51,7 @@ class AppServices {
     required this.eventsRepository,
     required this.gradesRepository,
     required this.notificationsRepository,
+    required this.parentRepository,
     required this.scheduleRepository,
     required this.userRepository,
     required this.sessionController,
@@ -74,6 +78,7 @@ class AppServices {
     final notificationsApiService = NotificationsApiService(
       authenticatedApiClient,
     );
+    final parentApiService = ParentApiService(authenticatedApiClient);
     final scheduleApiService = ScheduleApiService(authenticatedApiClient);
     final userApiService = UserApiService(authenticatedApiClient);
     final authRepository = AuthRepository(
@@ -96,6 +101,9 @@ class AppServices {
     final notificationsRepository = NotificationsRepository(
       notificationsApiService: notificationsApiService,
     );
+    final parentRepository = ParentRepository(
+      parentApiService: parentApiService,
+    );
     final scheduleRepository = ScheduleRepository(
       scheduleApiService: scheduleApiService,
     );
@@ -116,6 +124,7 @@ class AppServices {
       eventsApiService: eventsApiService,
       gradesApiService: gradesApiService,
       notificationsApiService: notificationsApiService,
+      parentApiService: parentApiService,
       scheduleApiService: scheduleApiService,
       userApiService: userApiService,
       tokenStorage: tokenStorage,
@@ -126,6 +135,7 @@ class AppServices {
       eventsRepository: eventsRepository,
       gradesRepository: gradesRepository,
       notificationsRepository: notificationsRepository,
+      parentRepository: parentRepository,
       scheduleRepository: scheduleRepository,
       userRepository: userRepository,
       sessionController: sessionController,
@@ -143,6 +153,7 @@ class AppServices {
   final EventsApiService eventsApiService;
   final GradesApiService gradesApiService;
   final NotificationsApiService notificationsApiService;
+  final ParentApiService parentApiService;
   final ScheduleApiService scheduleApiService;
   final UserApiService userApiService;
   final TokenStorage tokenStorage;
@@ -153,6 +164,7 @@ class AppServices {
   final EventsRepository eventsRepository;
   final GradesRepository gradesRepository;
   final NotificationsRepository notificationsRepository;
+  final ParentRepository parentRepository;
   final ScheduleRepository scheduleRepository;
   final UserRepository userRepository;
   final AppSessionController sessionController;

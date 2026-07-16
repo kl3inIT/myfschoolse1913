@@ -1,12 +1,11 @@
 # MyFSchoolSE1913
 
-MyFSchoolSE1913 is a Flutter learning project and real prototype for an FPT
-Schools-style student app.
+MyFSchoolSE1913 is a Flutter learning project and a four-role FPT
+Schools-style prototype.
 
-The current product is a student-facing mobile app backed by a Spring Boot
-modular monolith, plus a React admin web (`admin-web/`) for school staff.
-Flutter Web is used as an acceptable web/demo target for the same student
-experience.
+Flutter serves students and parents. React (`admin-web/`) serves administrators
+and teachers. Both clients use the same Spring Boot modular monolith and
+PostgreSQL database.
 
 ## Status
 
@@ -26,11 +25,16 @@ Current implemented scope includes:
 - clubs and registration flow;
 - notifications with detail/read-state;
 - account and logout;
+- parent workspace with verified child switching, published grades, schedule,
+  attendance, notifications, and application creation;
+- teacher React workspace scoped by subject/class assignments, with attendance,
+  multiple-component grade entry, homeroom application review, and conduct;
 - AI assistant chat grounded in the student's own schedule, grades,
   notifications, and applications (requires `OPENAI_API_KEY`);
 - admin web: dashboard, student/class/grade/timetable management with
   CSV/Excel import, notification publishing, and application review
-  (`docs/specs/domains/admin-web.md`).
+  plus teacher/homeroom assignments, guardian links, and audited published-grade
+  correction (`docs/specs/domains/school-work.md`).
 
 ## Quickstart
 
@@ -68,6 +72,8 @@ PostgreSQL instance as needed.
 
 - admin `0900000000 / Password123`;
 - demo student `0900000001 / Password123`;
+- teacher `0911000001 / Password123` and second teacher `0911000002`;
+- parent `0922000001 / Password123` and second parent `0922000002`;
 - 36 synthetic students across `10A1`, `10A2`, and `11A1`;
 - grades, a seven-day timetable, events, notifications, applications, and
   clubs;
@@ -94,13 +100,13 @@ To rebuild only this project's local database from zero (destructive), follow
 [the teacher demo runbook](./docs/guidelines/teacher-demo-runbook.md). Never
 drop the `northstar` database or the shared PostgreSQL container.
 
-Admin web (requires the backend on port 8080; demo admin
-`0900000000` / `Password123` when demo data is seeded):
+School-staff React web (requires the backend on port 8080; accepts the seeded
+admin and teacher accounts):
 
 ```powershell
 cd admin-web
 pnpm install
-npm run dev
+pnpm dev
 ```
 
 Flutter web:

@@ -12,54 +12,49 @@ import org.springframework.transaction.annotation.Transactional;
 
 public interface ClassTimetableSlotRepository extends JpaRepository<ClassTimetableSlot, UUID> {
 
-	@Query(
-			value = """
-					select slot
-					from ClassTimetableSlot slot
-					join fetch slot.schoolClass schoolClass
-					join fetch schoolClass.academicYear academicYear
-					join fetch slot.semester semester
-					left join fetch slot.subject subject
-					where :search = ''
-						or lower(schoolClass.name) like concat('%', :search, '%')
-						or lower(slot.title) like concat('%', :search, '%')
-						or lower(coalesce(slot.roomName, '')) like concat('%', :search, '%')
-						or lower(coalesce(slot.teacherName, '')) like concat('%', :search, '%')
-						or lower(coalesce(subject.code, '')) like concat('%', :search, '%')
-					""",
-			countQuery = """
-					select count(slot)
-					from ClassTimetableSlot slot
-					join slot.schoolClass schoolClass
-					left join slot.subject subject
-					where :search = ''
-						or lower(schoolClass.name) like concat('%', :search, '%')
-						or lower(slot.title) like concat('%', :search, '%')
-						or lower(coalesce(slot.roomName, '')) like concat('%', :search, '%')
-						or lower(coalesce(slot.teacherName, '')) like concat('%', :search, '%')
-						or lower(coalesce(subject.code, '')) like concat('%', :search, '%')
-					"""
-	)
-	Page<ClassTimetableSlot> searchForAdmin(@Param("search") String search, Pageable pageable);
+  @Query(
+      value =
+          """
+          select slot
+          from ClassTimetableSlot slot
+          join fetch slot.schoolClass schoolClass
+          join fetch schoolClass.academicYear academicYear
+          join fetch slot.semester semester
+          left join fetch slot.subject subject
+          where :search = ''
+            or lower(schoolClass.name) like concat('%', :search, '%')
+            or lower(slot.title) like concat('%', :search, '%')
+            or lower(coalesce(slot.roomName, '')) like concat('%', :search, '%')
+            or lower(coalesce(slot.teacherName, '')) like concat('%', :search, '%')
+            or lower(coalesce(subject.code, '')) like concat('%', :search, '%')
+          """,
+      countQuery =
+          """
+          select count(slot)
+          from ClassTimetableSlot slot
+          join slot.schoolClass schoolClass
+          left join slot.subject subject
+          where :search = ''
+            or lower(schoolClass.name) like concat('%', :search, '%')
+            or lower(slot.title) like concat('%', :search, '%')
+            or lower(coalesce(slot.roomName, '')) like concat('%', :search, '%')
+            or lower(coalesce(slot.teacherName, '')) like concat('%', :search, '%')
+            or lower(coalesce(subject.code, '')) like concat('%', :search, '%')
+          """)
+  Page<ClassTimetableSlot> searchForAdmin(@Param("search") String search, Pageable pageable);
 
-	List<ClassTimetableSlot> findBySchoolClassAndSemesterOrderByDayIndexAscLessonNumberAsc(
-			SchoolClass schoolClass,
-			Semester semester
-	);
+  List<ClassTimetableSlot> findBySchoolClassAndSemesterOrderByDayIndexAscLessonNumberAsc(
+      SchoolClass schoolClass, Semester semester);
 
-	List<ClassTimetableSlot> findBySchoolClassAndSemesterAndDayIndexOrderByLessonNumberAsc(
-			SchoolClass schoolClass,
-			Semester semester,
-			short dayIndex
-	);
+  List<ClassTimetableSlot> findBySchoolClassAndSemesterAndDayIndexOrderByLessonNumberAsc(
+      SchoolClass schoolClass, Semester semester, short dayIndex);
 
-	Optional<ClassTimetableSlot> findBySchoolClassAndSemesterAndDayIndexAndLessonNumber(
-			SchoolClass schoolClass,
-			Semester semester,
-			short dayIndex,
-			int lessonNumber
-	);
+  List<ClassTimetableSlot> findBySchoolClassAndSemesterAndSubject(
+      SchoolClass schoolClass, Semester semester, Subject subject);
 
-	@Transactional
-	void deleteBySchoolClassAndSemester(SchoolClass schoolClass, Semester semester);
+  Optional<ClassTimetableSlot> findBySchoolClassAndSemesterAndDayIndexAndLessonNumber(
+      SchoolClass schoolClass, Semester semester, short dayIndex, int lessonNumber);
+
+  @Transactional
+  void deleteBySchoolClassAndSemester(SchoolClass schoolClass, Semester semester);
 }
