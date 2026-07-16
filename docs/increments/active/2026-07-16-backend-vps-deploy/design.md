@@ -2,21 +2,23 @@
 
 ## Goal
 
-Deploy the Spring Boot backend at `https://myfschool.kl3in.tech` on the
-existing ZeroMail VPS without exposing PostgreSQL or the application container
-directly to the public network.
+Deploy the React Admin/Teacher portal and Spring Boot API at
+`https://myfschool.kl3in.tech` on the existing ZeroMail VPS without exposing
+PostgreSQL or either application container directly to the public network.
 
 ## Runtime
 
 ```mermaid
 flowchart LR
   Internet --> NPM[nginx-proxy-manager]
-  NPM -->|myfschool-proxy:8080| API[myfschool-api]
+  NPM -->|/: myfschool-proxy:8080| Web[myfschool-web]
+  NPM -->|/api: myfschool-proxy:8080| API[myfschool-api]
   API -->|myfschool-internal:5432| PG[zeromail-postgres]
 ```
 
 - Repository root: `/apps/myfschool`.
 - Reverse proxy and TLS: the existing Nginx Proxy Manager container.
+- Web: one non-root Nginx container serving the React Admin/Teacher SPA.
 - API: one non-root Spring Boot container with a 1 GiB memory limit.
 - Database: dedicated `myfschoolse1913` database and `myfschool` role in the
   existing PostgreSQL 18 + pgvector container.
