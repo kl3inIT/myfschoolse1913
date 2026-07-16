@@ -6,7 +6,8 @@ Apple ID. Good for learning/showcase; not a distribution channel.
 ## 1. Build The Unsigned IPA (GitHub Actions)
 
 - GitHub → Actions → "iOS IPA (unsigned)" → Run workflow.
-- Set `api_base_url` to something the iPhone can reach:
+- Keep the default `https://myfschool.kl3in.tech` for the production demo, or
+  set `api_base_url` to another endpoint the iPhone can reach:
   - same Wi-Fi as the laptop: `http://<laptop-LAN-IP>:8080`
     (find it with `ipconfig`, IPv4 of the Wi-Fi adapter);
   - or a public backend URL once deployed.
