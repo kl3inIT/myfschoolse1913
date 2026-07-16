@@ -204,6 +204,19 @@ relative `/api` requests to `myfschool-api` on the shared proxy network.
 Use `http://localhost:8080` for Flutter Web and `http://10.0.2.2:8080` for an
 Android emulator that talks to a backend running on the host machine.
 
+Production runs from `/apps/myfschool` on the ZeroMail VPS:
+
+- `https://myfschool.kl3in.tech/` routes through Nginx Proxy Manager to the
+  non-root `myfschool-web` React container on port 8080;
+- `https://myfschool.kl3in.tech/api` routes to the non-root
+  `myfschool-api` Spring Boot container on port 8080;
+- both containers use `myfschool-proxy`; the API additionally uses
+  `myfschool-internal` to reach the shared PostgreSQL container's dedicated
+  `myfschoolse1913` database and `myfschool` role;
+- server-local `.env` and persistent JWT PEM files are ignored by Git;
+- the one-time school and knowledge seed flags remain disabled during normal
+  operation.
+
 ## Demo Fixture
 
 The conditional seeders under `bootstrap/` and `document/` run when
