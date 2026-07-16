@@ -10,11 +10,11 @@
 - [x] Commit, push, merge, and deploy the exact API revision.
 - [x] Create isolated Docker networks, database role/database, pgvector
   extension, server-local secrets, and the application directory.
-- [ ] Build, publish, and deploy the React Admin/Teacher image.
-- [ ] Create the DNS record and Nginx Proxy Manager host with `/` routed to web,
+- [x] Build, publish, and deploy the React Admin/Teacher image.
+- [x] Create the DNS record and Nginx Proxy Manager host with `/` routed to web,
   `/api` routed to API, and TLS enabled.
-- [ ] Point Flutter and the iOS IPA workflow at the production HTTPS origin,
+- [x] Point Flutter and the iOS IPA workflow at the production HTTPS origin,
   rebuild the mobile artifacts, and verify student/parent login publicly.
 - [x] Run Flyway and the one-time demo seed, disable the seed flag, and restart.
-- [ ] Verify health, login, role-scoped data, restart persistence, and logs.
-- [ ] Consolidate architecture/runbook docs and update Northstar.
+- [x] Verify health, login, role-scoped data, restart persistence, and logs.
+- [x] Consolidate architecture/runbook docs and update Northstar.

@@ -136,6 +136,10 @@ npm run lint
 npm run build
 ```
 
+Production Admin/Teacher portal and API: `https://myfschool.kl3in.tech`.
+Flutter release builds use this HTTPS origin by default; local development can
+override it with `--dart-define=API_BASE_URL=...`.
+
 Backend tests require a reachable PostgreSQL database matching the backend
 configuration.
 
