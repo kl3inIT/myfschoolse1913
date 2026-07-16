@@ -1,0 +1,14 @@
+spring:
+  jpa:
+    properties:
+      hibernate:
+        format_sql: false
+
+server:
+  forward-headers-strategy: framework
+
+app:
+  cors:
+    allowed-origin-patterns: ${CORS_ALLOWED_ORIGIN_PATTERNS:https://myfschool.kl3in.tech}
+  auth:
+    expose-password-reset-otp: ${EXPOSE_PASSWORD_RESET_OTP:false}

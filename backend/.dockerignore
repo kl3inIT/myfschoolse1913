@@ -1,0 +1,6 @@
+.gradle/
+build/
+*.log
+hs_err_pid*
+replay_pid*
+src/test/

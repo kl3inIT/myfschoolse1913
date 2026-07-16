@@ -11,7 +11,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.core.io.ClassPathResource;
 
 @Configuration
-@ConditionalOnProperty(prefix = "app.bootstrap.demo-user", name = "enabled", havingValue = "true")
+@ConditionalOnProperty(prefix = "app.bootstrap.demo-knowledge", name = "enabled", havingValue = "true")
 public class DemoKnowledgeBaseSeeder {
 
 	@Bean
