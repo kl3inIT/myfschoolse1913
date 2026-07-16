@@ -128,6 +128,7 @@ flutter analyze
 flutter test
 flutter build web --dart-define=API_BASE_URL=http://localhost:8080
 flutter build apk --debug --dart-define=API_BASE_URL=http://10.0.2.2:8080
+flutter build apk --release # production API: https://myfschool.kl3in.tech
 cd backend
 .\gradlew.bat test --rerun-tasks
 cd ..\admin-web

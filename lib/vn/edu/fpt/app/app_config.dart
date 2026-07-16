@@ -5,7 +5,7 @@ class AppConfig {
     return const AppConfig(
       apiBaseUrl: String.fromEnvironment(
         'API_BASE_URL',
-        defaultValue: 'http://localhost:8080',
+        defaultValue: 'https://myfschool.kl3in.tech',
       ),
     );
   }

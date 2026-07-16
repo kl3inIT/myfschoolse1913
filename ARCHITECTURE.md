@@ -197,8 +197,9 @@ The local database is the `myfschoolse1913` database inside the
 - `OPENAI_API_KEY` (no default; required for the student assistant)
 - `ASSISTANT_CHAT_MODEL=gpt-5.5`
 
-Flutter reads `API_BASE_URL` from `--dart-define`, defaulting to
-`http://localhost:8080`.
+Flutter reads `API_BASE_URL` from `--dart-define`, defaulting to the production
+origin `https://myfschool.kl3in.tech`. Nginx Proxy Manager routes the app's
+relative `/api` requests to `myfschool-api` on the shared proxy network.
 
 Use `http://localhost:8080` for Flutter Web and `http://10.0.2.2:8080` for an
 Android emulator that talks to a backend running on the host machine.
@@ -233,6 +234,7 @@ flutter analyze
 flutter test
 flutter build web --dart-define=API_BASE_URL=http://localhost:8080
 flutter build apk --debug --dart-define=API_BASE_URL=http://10.0.2.2:8080
+flutter build apk --release
 
 cd backend
 .\gradlew.bat test --rerun-tasks
